@@ -1,0 +1,1185 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ApnaBazaar — India's Marketplace</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: {50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12'},
+        ink: {50:'#fafaf9',100:'#f5f5f4',200:'#e7e5e4',300:'#d6d3d1',400:'#a8a29e',500:'#78716c',600:'#57534e',700:'#44403c',800:'#292524',900:'#1c1917'}
+      },
+      fontFamily: { sans:['Plus Jakarta Sans','ui-sans-serif','system-ui','sans-serif'] },
+      borderRadius: { 'xl2':'1.25rem','xl3':'1.5rem' },
+      boxShadow: { soft:'0 1px 2px rgba(28,25,23,0.04), 0 4px 16px rgba(28,25,23,0.04)', card:'0 1px 3px rgba(28,25,23,0.05), 0 10px 30px rgba(28,25,23,0.05)'}
+    }
+  }
+}
+</script>
+<style>
+  html{scroll-behavior:smooth}
+  body{font-family:'Plus Jakarta Sans',sans-serif;color:#1c1917;background:#fafaf9;-webkit-font-smoothing:antialiased}
+  ::selection{background:#fed7aa;color:#7c2d12}
+  .no-scrollbar::-webkit-scrollbar{display:none}
+  .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+  [x-cloak]{display:none!important}
+  .fade-in{animation:fadeIn .4s ease both}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .skeleton{background:linear-gradient(90deg,#f5f5f4 25%,#e7e5e4 37%,#f5f5f4 63%);background-size:400% 100%;animation:sk 1.2s infinite}
+  @keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  input,select,textarea{outline:none}
+  input:focus,select:focus,textarea:focus{border-color:#ea580c;box-shadow:0 0 0 3px rgba(234,88,12,.12)}
+  .checkbox-brand:checked{accent-color:#ea580c}
+  .switch{position:relative;width:40px;height:22px;background:#d6d3d1;border-radius:999px;transition:.2s;cursor:pointer}
+  .switch.on{background:#ea580c}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .switch.on::after{left:20px}
+  .tab-active{color:#1c1917;border-color:#ea580c}
+  .nav-link{position:relative}
+  .nav-link::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:2px;background:#ea580c;transform:scaleX(0);transform-origin:left;transition:.2s}
+  .nav-link:hover::after{transform:scaleX(1)}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ============ TOP ANNOUNCEMENT ============ -->
+<div class="bg-ink-900 text-ink-100 text-xs">
+  <div class="max-w-7xl mx-auto px-4 h-9 flex items-center justify-between">
+    <span class="flex items-center gap-2"><span class="hidden sm:inline">Free delivery on orders over ₹499 ·</span> Use code <b class="text-brand-300">APNA50</b> for 50% off (max ₹200)</span>
+    <div class="hidden md:flex items-center gap-4 text-ink-300">
+      <a href="#/seller" class="hover:text-white">Sell on ApnaBazaar</a>
+      <a href="#/orders" class="hover:text-white">Track Order</a>
+      <a href="#/admin" class="hover:text-white">Admin</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header id="siteHeader" class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-ink-200"></header>
+
+<!-- ============ MAIN VIEW ============ -->
+<main id="view" class="min-h-[60vh]"></main>
+
+<!-- ============ FOOTER ============ -->
+<footer id="siteFooter" class="bg-ink-900 text-ink-300 mt-16"></footer>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] hidden">
+  <div class="bg-ink-900 text-white text-sm px-5 py-3 rounded-full shadow-card flex items-center gap-2">
+    <svg class="w-4 h-4 text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="toastMsg">Added to cart</span>
+  </div>
+</div>
+
+<!-- ============ MODAL ROOT ============ -->
+<div id="modalRoot"></div>
+
+<script>
+/* ============================================================
+   ICONS
+============================================================ */
+const I = {
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  heart:'<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21.4l8.8-8.7a5 5 0 0 0 0-7.1z"/>',
+  cart:'<circle cx="9" cy="21" r="1.6"/><circle cx="18" cy="21" r="1.6"/><path d="M2 3h3l2.4 12.4a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.6-1.3L22 7H6"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+  star:'<path d="M12 3l2.7 5.6 6 .9-4.3 4.2 1 6L12 17.8 6.6 19.7l1-6L3.3 9.5l6-.9z"/>',
+  truck:'<path d="M1 4h13v11H1z"/><path d="M14 8h4l3 3v4h-7"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+  menu:'<path d="M3 6h18M3 12h18M3 18h18"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  chevron:'<path d="M9 6l6 6-6 6"/>',
+  filter:'<path d="M3 5h18M6 12h12M10 19h4"/>',
+  grid:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  minus:'<path d="M5 12h14"/>',
+  trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+  check:'<path d="M5 13l4 4L19 7"/>',
+  bag:'<path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  home:'<path d="M3 11l9-8 9 8M5 9v11h14V9"/>',
+  box:'<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2.2-1.3L13.8 3h-4l-.4 2.5a7 7 0 0 0-2.2 1.3l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 4.8 12c0 .4 0 .9.1 1.3l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2.2 1.3l.4 2.4h4l.4-2.4a7 7 0 0 0 2.2-1.3l2.4 1 2-3.4-2-1.6c.1-.4.1-.9.1-1.3z"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  phone:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
+  laptop:'<rect x="3" y="5" width="18" height="11" rx="1"/><path d="M2 20h20"/>',
+  shirt:'<path d="M16 4l-4 2-4-2-5 3 2 4h2v10h10V11h2l2-4z"/>',
+  sparkles:'<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5zM18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"/>',
+  book:'<path d="M4 4h11a2 2 0 0 1 2 2v14H6a2 2 0 0 0-2 2V4z"/><path d="M4 20a2 2 0 0 0 2 2h11"/>',
+  cube:'<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 12l9-5M12 12v10M12 12L3 7"/>',
+  shopping:'<path d="M3 6h2l2 12h10l2-8H6"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/>',
+  tag:'<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="8" cy="8" r="1.5"/>',
+  edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+  rupee:'<path d="M6 4h12M6 8h12M14 4c2 2 2 8-4 8 4 0 4 4 4 8"/>',
+  shield:'<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/>',
+  map:'<path d="M9 20l-6-3V5l6 3 6-3 6 3v12l-6-3-6 3zM9 8v12M15 5v12"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  alert:'<path d="M12 2l10 18H2z"/><path d="M12 9v5M12 17h.01"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M16 4a3 3 0 0 1 0 6"/><path d="M22 21c0-2.5-1-4-3-5"/>',
+  package:'<path d="M12 2l9 5v10l-9 5-9-5V7z"/>',
+  percent:'<path d="M19 5L5 19"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="16" r="2"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>'
+};
+function icon(name, cls='w-5 h-5'){
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[name]||''}</svg>`;
+}
+
+/* ============================================================
+   DATA
+============================================================ */
+const categories = [
+  {id:'electronics', name:'Electronics', icon:'laptop', tint:'#e0e7ff'},
+  {id:'mobiles', name:'Mobiles & Tablets', icon:'phone', tint:'#dbeafe'},
+  {id:'fashion', name:'Fashion', icon:'shirt', tint:'#fce7f3'},
+  {id:'home', name:'Home & Kitchen', icon:'home', tint:'#fef3c7'},
+  {id:'beauty', name:'Beauty & Care', icon:'sparkles', tint:'#fae8ff'},
+  {id:'books', name:'Books & Stationery', icon:'book', tint:'#d1fae5'},
+  {id:'toys', name:'Toys & Games', icon:'cube', tint:'#fef9c3'},
+  {id:'grocery', name:'Grocery', icon:'shopping', tint:'#dcfce7'}
+];
+
+const sellers = [
+  {id:'s1', name:'TechWorld India', rating:4.7, products:128, location:'Bengaluru', verified:true, joined:'2022', status:'approved'},
+  {id:'s2', name:'Sangam Textiles', rating:4.5, products:340, location:'Surat', verified:true, joined:'2021', status:'approved'},
+  {id:'s3', name:'KitchenKraft', rating:4.6, products:96, location:'Jaipur', verified:true, joined:'2023', status:'approved'},
+  {id:'s4', name:'GlowBeauty Co.', rating:4.4, products:74, location:'Mumbai', verified:false, joined:'2024', status:'pending'},
+  {id:'s5', name:'BookNest Publishers', rating:4.8, products:520, location:'Delhi', verified:true, joined:'2020', status:'approved'}
+];
+
+const P = [
+  {id:1, name:'OnePlus 12R 5G (256GB)', cat:'mobiles', price:39999, mrp:45999, rating:4.5, reviews:2143, stock:42, seller:'s1', brand:'OnePlus', desc:'6.78" 120Hz AMOLED, Snapdragon 8 Gen 2, 5500mAh with 100W SuperVOOC charging.', specs:{Display:'6.78" LTPO AMOLED 120Hz',Processor:'Snapdragon 8 Gen 2',RAM:'8GB',Storage:'256GB',Battery:'5500mAh',Camera:'50MP+8MP+2MP'}, tags:['Trending','Fast Moving']},
+  {id:2, name:'boAt Airdopes 141 Wireless Earbuds', cat:'electronics', price:1299, mrp:2990, rating:4.3, reviews:18420, stock:230, seller:'s1', brand:'boAt', desc:'42hr playback, ENx tech, ASAP charge, Bluetooth 5.1.', specs:{Playback:'42 Hours',Driver:'8mm',Bluetooth:'5.1',Charging:'Type-C ASAP'}, tags:['Bestseller']},
+  {id:3, name:'Sony WH-1000XM5 Headphones', cat:'electronics', price:29990, mrp:34990, rating:4.7, reviews:891, stock:18, seller:'s1', brand:'Sony', desc:'Industry-leading noise cancellation with 30hr battery and crystal-clear calls.', specs:{Type:'Over-Ear',ANC:'Adaptive',Battery:'30 hours',Connectivity:'Bluetooth 5.2'}, tags:['Premium']},
+  {id:4, name:'Mi Smart Band 8', cat:'electronics', price:2499, mrp:2999, rating:4.4, reviews:5621, stock:150, seller:'s1', brand:'Xiaomi', desc:'1.62" AMOLED, 150+ sports modes, 16-day battery, SpO2 monitoring.', specs:{Display:'1.62" AMOLED',Battery:'16 days',Modes:'150+',Water:'5ATM'}, tags:[]},
+  {id:5, name:"Levi's Men's Crew Neck T-Shirt", cat:'fashion', price:799, mrp:1499, rating:4.2, reviews:3204, stock:88, seller:'s2', brand:"Levi's", desc:'100% combed cotton, regular fit, machine washable. Premium everyday essential.', specs:{Material:'100% Cotton',Fit:'Regular',Sleeve:'Short',Care:'Machine Wash'}, tags:['Trending']},
+  {id:6, name:'FabIndia Handblock Cotton Kurti', cat:'fashion', price:1499, mrp:2499, rating:4.5, reviews:1280, stock:64, seller:'s2', brand:'FabIndia', desc:'Hand block printed, straight cut, mulmul cotton. Made by Indian artisans.', specs:{Material:'Mulmul Cotton',Length:'44"',Pattern:'Handblock',Sleeve:'3/4th'}, tags:['Handloom']},
+  {id:7, name:'Puma Smash v2 Sneakers', cat:'fashion', price:2799, mrp:4499, rating:4.4, reviews:4290, stock:52, seller:'s2', brand:'Puma', desc:'Classic court silhouette, leather upper, rubber outsole. Unisex styling.', specs:{Upper:'Leather',Sole:'Rubber',Closure:'Lace',Use:'Casual'}, tags:[]},
+  {id:8, name:'Prestige Popular 3L Pressure Cooker', cat:'home', price:1199, mrp:1695, rating:4.5, reviews:11203, stock:120, seller:'s3', brand:'Prestige', desc:'Aluminium body, controlled gasket release, gas-stove compatible. ISI certified.', specs:{Capacity:'3 Litres',Material:'Aluminium',Base:'Gas Compatible',Warranty:'5 years'}, tags:['Bestseller']},
+  {id:9, name:'Philips Air Fryer HD9252 (4.1L)', cat:'home', price:8499, mrp:10995, rating:4.4, reviews:2760, stock:30, seller:'s3', brand:'Philips', desc:'Rapid Air technology, 4.1L capacity, 7 presets, removable non-stick basket.', specs:{Capacity:'4.1L',Power:'1400W',Presets:'7',Basket:'Non-stick'}, tags:[]},
+  {id:10, name:'Milton Thermosteel Bottle 1000ml', cat:'home', price:549, mrp:880, rating:4.5, reviews:9821, stock:410, seller:'s3', brand:'Milton', desc:'24hr hot/cold insulation, 304 stainless steel, leak-proof flip cap.', specs:{Capacity:'1000ml',Material:'SS 304',Insulation:'24 hours',Cap:'Flip'}, tags:[]},
+  {id:11, name:'Mamaearth Vitamin C Face Wash 100ml', cat:'beauty', price:349, mrp:449, rating:4.3, reviews:15420, stock:320, seller:'s4', brand:'Mamaearth', desc:'With Vitamin C & Turmeric for glowing skin. Toxin-free, paraben-free.', specs:{Volume:'100ml',Skin:'All Types',Key:'Vitamin C',Free:'Paraben/Sulphate'}, tags:['Trending']},
+  {id:12, name:'Lakmé Absolute Skin Gloss Foundation', cat:'beauty', price:1099, mrp:1500, rating:4.1, reviews:3210, stock:75, seller:'s4', brand:'Lakmé', desc:'Lightweight dewy finish, SPF 25, hydrating formula. Available in 6 shades.', specs:{Shade:'Natural Honey',SPF:'25',Finish:'Dewy',Volume:'30ml'}, tags:[]},
+  {id:13, name:'Wings of Fire — A.P.J Abdul Kalam', cat:'books', price:299, mrp:499, rating:4.8, reviews:8902, stock:200, seller:'s5', brand:'Universities Press', desc:'An autobiography of Dr. A.P.J Abdul Kalam — inspiring journey of India’s missile man.', specs:{Pages:'180',Language:'English',Binding:'Paperback',Edition:'2021'}, tags:['Bestseller']},
+  {id:14, name:'The Alchemist — Paulo Coelho', cat:'books', price:249, mrp:399, rating:4.7, reviews:12340, stock:180, seller:'s5', brand:'HarperCollins', desc:'A timeless fable about following your dreams. International bestseller.', specs:{Pages:'177',Language:'English',Binding:'Paperback',Edition:'Reissue'}, tags:[]},
+  {id:15, name:'LEGO Classic Creative Bricks (484pcs)', cat:'toys', price:1499, mrp:1999, rating:4.6, reviews:2310, stock:60, seller:'s3', brand:'LEGO', desc:'484 colourful bricks for ages 4+. Inspires open-ended creative building.', specs:{Pieces:'484',Age:'4+',Material:'Plastic',Theme:'Creative'}, tags:[]},
+  {id:16, name:'Tata Sampann Unpolished Toor Dal 1kg', cat:'grocery', price:165, mrp:220, rating:4.4, reviews:4530, stock:540, seller:'s5', brand:'Tata', desc:'Unpolished, rich in protein, no additives. Sourced from Indian farms.', specs:{Weight:'1kg',Type:'Toor Dal',Polish:'No','Shelf Life':'6 months'}, tags:[]}
+];
+
+/* Product visual placeholder (clean, minimalist, never breaks) */
+function productImg(p, w=400, h=400){
+  const c = categories.find(c=>c.id===p.cat);
+  const tint = c ? c.tint : '#f5f5f4';
+  const initials = p.brand.slice(0,2).toUpperCase();
+  return `<div class="w-full h-full flex items-center justify-center" style="background:linear-gradient(135deg, ${tint}, #ffffff);">
+    <div class="flex flex-col items-center gap-3 text-ink-300">
+      <div class="w-16 h-16 rounded-2xl bg-white shadow-soft flex items-center justify-center text-ink-500">${icon(c?c.icon:'box','w-8 h-8')}</div>
+      <div class="text-xs font-semibold tracking-widest text-ink-400">${initials}</div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   STATE
+============================================================ */
+const state = {
+  user: {name:'Aarav Sharma', email:'aarav@example.com', phone:'+91 98765 43210', role:'customer'},
+  cart: [ {id:2, qty:1}, {id:13, qty:2}, {id:10, qty:1} ],
+  wishlist: [3, 5, 9],
+  orders: [
+    {id:'AB10293', date:'12 Oct 2024', items:[{id:1, qty:1}], total:39999, status:'delivered', eta:'Delivered on 18 Oct'},
+    {id:'AB10341', date:'02 Nov 2024', items:[{id:11, qty:2},{id:10, qty:1}], total:1247, status:'out_for_delivery', eta:'Arriving today by 7 PM'},
+    {id:'AB10418', date:'05 Nov 2024', items:[{id:4, qty:1}], total:2499, status:'packed', eta:'Dispatch by 07 Nov'},
+    {id:'AB10502', date:'06 Nov 2024', items:[{id:8, qty:1}], total:1199, status:'confirmed', eta:'Dispatch by 09 Nov'}
+  ],
+  addresses: [
+    {id:1, name:'Home', line:'12 Brigade Residency, MG Road', city:'Bengaluru', state:'Karnataka', pin:'560001', phone:'+91 98765 43210', default:true},
+    {id:2, name:'Office', line:'5th Floor, Prestige Tower, Whitefield', city:'Bengaluru', state:'Karnataka', pin:'560066', phone:'+91 98765 43210', default:false}
+  ],
+  sellerProducts: P.filter(p=>p.seller==='s1').map(p=>({...p, approved:true})),
+  filters: {cat:[], minPrice:0, maxPrice:50000, rating:0, sort:'relevance'},
+  search:'',
+  loading:false
+};
+
+const statusSteps = ['ordered','confirmed','packed','shipped','out_for_delivery','delivered'];
+const statusLabels = {ordered:'Ordered',confirmed:'Confirmed',packed:'Packed',shipped:'Shipped',out_for_delivery:'Out for Delivery',delivered:'Delivered'};
+const statusColors = {ordered:'#a8a29e',confirmed:'#f59e0b',packed:'#f59e0b',shipped:'#3b82f6',out_for_delivery:'#ea580c',delivered:'#16a34a'};
+
+/* ============================================================
+   HELPERS
+============================================================ */
+const $ = (s, r=document)=>r.querySelector(s);
+const money = n => '₹'+n.toLocaleString('en-IN');
+const discount = p => Math.round((p.mrp-p.price)/p.mrp*100);
+const prod = id => P.find(p=>p.id==id);
+const seller = id => sellers.find(s=>s.id===id);
+const catName = id => {const c=categories.find(c=>c.id===id);return c?c.name:''};
+
+function toast(msg){
+  const t = $('#toast'); $('#toastMsg').textContent = msg;
+  t.classList.remove('hidden'); t.classList.add('fade-in');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.add('hidden'),2200);
+}
+
+function ratingStars(r, size='w-3.5 h-3.5'){
+  let s=''; const full=Math.floor(r);
+  for(let i=0;i<5;i++){
+    s += `<svg class="${size} ${i<full?'text-brand-500':'text-ink-300'}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.7 5.6 6 .9-4.3 4.2 1 6L12 17.8 6.6 19.7l1-6L3.3 9.5l6-.9z"/></svg>`;
+  }
+  return `<span class="inline-flex items-center gap-0.5">${s}</span>`;
+}
+
+function cartCount(){ return state.cart.reduce((a,c)=>a+c.qty,0); }
+function wishCount(){ return state.wishlist.length; }
+
+function addToCart(id){
+  const ex = state.cart.find(c=>c.id==id);
+  if(ex) ex.qty++; else state.cart.push({id, qty:1});
+  toast('Added to cart'); renderHeader();
+}
+function updateQty(id, d){
+  const c = state.cart.find(c=>c.id==id); if(!c) return;
+  c.qty += d; if(c.qty<=0) state.cart = state.cart.filter(x=>x.id!=id);
+  renderHeader(); if(location.hash.startsWith('#/cart')) router();
+  if(location.hash.startsWith('#/checkout')) router();
+}
+function removeCart(id){ state.cart = state.cart.filter(c=>c.id!=id); toast('Removed from cart'); renderHeader(); router(); }
+function toggleWish(id){
+  const i = state.wishlist.indexOf(id);
+  if(i>=0){state.wishlist.splice(i,1); toast('Removed from wishlist');} else {state.wishlist.push(id); toast('Added to wishlist');}
+  renderHeader(); router();
+}
+function cartTotal(){ return state.cart.reduce((a,c)=>a+prod(c.id).price*c.qty,0); }
+function deliveryCharge(){
+  const t = cartTotal();
+  if(t===0) return 0;
+  return t>=499 ? 0 : 49;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+function renderHeader(){
+  const hash = location.hash;
+  const isDashboard = hash.startsWith('#/seller') || hash.startsWith('#/admin');
+  if(isDashboard){ $('#siteHeader').innerHTML=''; return; }
+  $('#siteHeader').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="h-16 flex items-center gap-3 md:gap-6">
+        <a href="#/" class="flex items-center gap-2 shrink-0">
+          <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-lg shadow-soft">a</div>
+          <div class="leading-none">
+            <div class="font-extrabold text-lg tracking-tight">ApnaBazaar</div>
+            <div class="text-[10px] text-ink-400 font-medium tracking-wide hidden sm:block">India's Marketplace</div>
+          </div>
+        </a>
+        <div class="hidden md:flex flex-1 max-w-2xl">
+          <div class="flex w-full">
+            <input id="searchInput" value="${state.search}" placeholder="Search for products, brands and more" class="flex-1 h-11 px-4 text-sm border border-ink-200 rounded-l-xl bg-ink-50 focus:bg-white transition">
+            <button onclick="doSearch()" class="h-11 px-5 bg-brand-600 hover:bg-brand-700 text-white rounded-r-xl flex items-center gap-2 text-sm font-semibold transition">${icon('search','w-4 h-4')}<span class="hidden sm:inline">Search</span></button>
+          </div>
+        </div>
+        <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-ink-600">
+          <a href="#/products" class="nav-link hover:text-ink-900">Categories</a>
+          <a href="#/orders" class="nav-link hover:text-ink-900">Orders</a>
+        </nav>
+        <div class="flex items-center gap-1 md:gap-2 ml-auto md:ml-0">
+          <button onclick="openLogin()" class="hidden md:flex items-center gap-2 px-3 h-10 rounded-xl hover:bg-ink-100 text-sm font-medium text-ink-700 transition">
+            ${icon('user','w-5 h-5')}<span class="hidden xl:inline">Account</span>
+          </button>
+          <a href="#/wishlist" class="relative w-10 h-10 rounded-xl hover:bg-ink-100 flex items-center justify-center text-ink-700 transition">
+            ${icon('heart','w-5 h-5')}
+            ${wishCount()?`<span class="absolute -top-0.5 -right-0.5 bg-brand-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">${wishCount()}</span>`:''}
+          </a>
+          <a href="#/cart" class="relative w-10 h-10 rounded-xl hover:bg-ink-100 flex items-center justify-center text-ink-700 transition">
+            ${icon('cart','w-5 h-5')}
+            ${cartCount()?`<span class="absolute -top-0.5 -right-0.5 bg-brand-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">${cartCount()}</span>`:''}
+          </a>
+          <button onclick="mobileMenu()" class="md:hidden w-10 h-10 rounded-xl hover:bg-ink-100 flex items-center justify-center text-ink-700">${icon('menu')}</button>
+        </div>
+      </div>
+      <div class="md:hidden pb-3">
+        <div class="flex">
+          <input id="searchInputM" value="${state.search}" placeholder="Search ApnaBazaar" class="flex-1 h-10 px-3 text-sm border border-ink-200 rounded-l-xl bg-ink-50">
+          <button onclick="doSearch(true)" class="h-10 px-4 bg-brand-600 text-white rounded-r-xl">${icon('search','w-4 h-4')}</button>
+        </div>
+      </div>
+      <div id="catBar" class="hidden md:flex items-center gap-1 -mb-px overflow-x-auto no-scrollbar pb-2">
+        ${categories.map(c=>`<a href="#/products?cat=${c.id}" class="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-600 hover:bg-ink-100 hover:text-ink-900 whitespace-nowrap transition">${c.name}</a>`).join('')}
+        <a href="#/products?deals=1" class="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold text-brand-700 hover:bg-brand-50 whitespace-nowrap transition flex items-center gap-1">${icon('percent','w-3.5 h-3.5')} Deals</a>
+      </div>
+    </div>`;
+}
+
+function doSearch(m){
+  const v = (m?$('#searchInputM')?.value:$('#searchInput')?.value) || '';
+  state.search = v; state.filters.sort='relevance';
+  location.hash = '#/products';
+  router();
+}
+
+function mobileMenu(){
+  // simple mobile categories menu
+  openModal(`
+    <div class="p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-lg">Browse</h3>
+        <button onclick="closeModal()" class="w-9 h-9 rounded-xl hover:bg-ink-100 flex items-center justify-center">${icon('x')}</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        ${categories.map(c=>`<a href="#/products?cat=${c.id}" onclick="closeModal()" class="flex items-center gap-3 p-3 rounded-xl border border-ink-200 hover:bg-ink-50 transition">
+          <span class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:${c.tint}">${icon(c.icon,'w-5 h-5 text-ink-600')}</span>
+          <span class="text-sm font-medium">${c.name}</span></a>`).join('')}
+      </div>
+      <div class="mt-4 pt-4 border-t border-ink-200 grid grid-cols-2 gap-2 text-sm">
+        <a href="#/orders" onclick="closeModal()" class="p-3 rounded-xl bg-ink-50 font-medium">My Orders</a>
+        <a href="#/profile" onclick="closeModal()" class="p-3 rounded-xl bg-ink-50 font-medium">Profile</a>
+        <a href="#/seller" onclick="closeModal()" class="p-3 rounded-xl bg-ink-50 font-medium">Sell</a>
+        <a href="#/admin" onclick="closeModal()" class="p-3 rounded-xl bg-ink-50 font-medium">Admin</a>
+      </div>
+    </div>`);
+}
+
+/* ============================================================
+   MODAL
+============================================================ */
+function openModal(html, size='max-w-md'){
+  $('#modalRoot').innerHTML = `
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal()">
+      <div class="absolute inset-0 bg-ink-900/40 backdrop-blur-sm"></div>
+      <div class="relative bg-white rounded-2xl shadow-card w-full ${size} max-h-[90vh] overflow-y-auto fade-in">${html}</div>
+    </div>`;
+}
+function closeModal(){ $('#modalRoot').innerHTML=''; }
+
+function openLogin(){
+  openModal(`
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="font-extrabold text-xl">Welcome to ApnaBazaar</h3>
+        <button onclick="closeModal()" class="w-9 h-9 rounded-xl hover:bg-ink-100 flex items-center justify-center text-ink-500">${icon('x')}</button>
+      </div>
+      <p class="text-sm text-ink-500 mb-5">Sign in to continue your shopping journey</p>
+      <form onsubmit="handleLogin(event)" class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-ink-600">Email or Mobile</label>
+          <input required value="aarav@example.com" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-ink-600">Password</label>
+          <input type="password" required value="password" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50">
+        </div>
+        <button class="w-full h-11 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm transition">Sign In</button>
+      </form>
+      <div class="flex items-center gap-3 my-4 text-xs text-ink-400"><div class="flex-1 h-px bg-ink-200"></div>or continue with<div class="flex-1 h-px bg-ink-200"></div></div>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="h-10 border border-ink-200 rounded-xl text-sm font-medium hover:bg-ink-50 flex items-center justify-center gap-2">Google</button>
+        <button class="h-10 border border-ink-200 rounded-xl text-sm font-medium hover:bg-ink-50 flex items-center justify-center gap-2">Apple</button>
+      </div>
+      <p class="text-center text-sm text-ink-500 mt-5">New to ApnaBazaar? <a href="#" onclick="closeModal();toast('Registration form would open here');return false;" class="text-brand-700 font-semibold">Create account</a></p>
+    </div>`);
+}
+function handleLogin(e){ e.preventDefault(); closeModal(); toast('Signed in successfully'); renderHeader(); }
+
+/* ============================================================
+   ROUTER
+============================================================ */
+function parseHash(){
+  let h = location.hash.replace(/^#/,'') || '/';
+  const [path, query] = h.split('?');
+  const seg = path.split('/').filter(Boolean);
+  const q = {};
+  if(query) query.split('&').forEach(p=>{const [k,v]=p.split('=');q[k]=decodeURIComponent(v||'');});
+  return {seg, q};
+}
+
+function router(){
+  $('#siteFooter').style.display = (location.hash.startsWith('#/seller')||location.hash.startsWith('#/admin')) ? 'none':'';
+  if(state.loading){ $('#view').innerHTML = renderSkeleton(); state.loading=false; }
+  const {seg, q} = parseHash();
+  const route = seg[0] || '';
+  window.scrollTo(0,0);
+  renderHeader();
+  if(route==='') homeView();
+  else if(route==='products') productsView(q);
+  else if(route==='product') productView(seg[1]);
+  else if(route==='cart') cartView();
+  else if(route==='checkout') checkoutView();
+  else if(route==='orders') ordersView(seg[1]);
+  else if(route==='profile') profileView(q.tab);
+  else if(route==='wishlist') wishlistView();
+  else if(route==='seller') sellerView(seg[1]||'dashboard');
+  else if(route==='admin') adminView(seg[1]||'dashboard');
+  else notFound();
+}
+
+/* ============================================================
+   VIEWS — HOME
+============================================================ */
+function homeView(){
+  $('#view').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4 py-6 fade-in">
+      <!-- HERO -->
+      <section class="grid lg:grid-cols-3 gap-4 mb-8">
+        <div class="lg:col-span-2 rounded-3xl bg-gradient-to-br from-brand-600 to-brand-700 text-white p-8 md:p-12 relative overflow-hidden">
+          <div class="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/10"></div>
+          <div class="absolute right-20 bottom-0 w-40 h-40 rounded-full bg-white/5"></div>
+          <div class="relative">
+            <span class="inline-flex items-center gap-2 text-xs font-semibold bg-white/15 px-3 py-1.5 rounded-full mb-5">${icon('sparkles','w-4 h-4')} Festival Season Live</span>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight max-w-lg">Apna Bazaar,<br>apne prices.</h1>
+            <p class="text-white/80 mt-3 max-w-md text-sm md:text-base">Discover lakhs of products from verified Indian sellers. Shop with confidence, delivered to your doorstep.</p>
+            <div class="flex flex-wrap gap-3 mt-6">
+              <a href="#/products" class="bg-white text-brand-700 font-semibold text-sm px-5 h-11 rounded-xl flex items-center gap-2 hover:bg-brand-50 transition">${icon('bag','w-4 h-4')} Start Shopping</a>
+              <a href="#/seller" class="border border-white/30 text-white font-semibold text-sm px-5 h-11 rounded-xl flex items-center gap-2 hover:bg-white/10 transition">Become a Seller</a>
+            </div>
+            <div class="flex items-center gap-6 mt-8 text-sm">
+              <div><div class="font-extrabold text-2xl">2L+</div><div class="text-white/70 text-xs">Products</div></div>
+              <div><div class="font-extrabold text-2xl">15K+</div><div class="text-white/70 text-xs">Sellers</div></div>
+              <div><div class="font-extrabold text-2xl">28</div><div class="text-white/70 text-xs">States</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="rounded-3xl bg-ink-900 text-white p-6 flex flex-col justify-between min-h-[140px]">
+            <div>${icon('percent','w-7 h-7 text-brand-400')}</div>
+            <div><div class="font-extrabold text-lg">Up to 70% off</div><div class="text-ink-400 text-sm">Electronics & Mobiles</div><a href="#/products?deals=1" class="text-brand-400 text-xs font-semibold mt-1 inline-flex items-center gap-1">Shop deals ${icon('arrow','w-3 h-3')}</a></div>
+          </div>
+          <div class="rounded-3xl bg-white border border-ink-200 p-6 flex flex-col justify-between min-h-[140px] shadow-soft">
+            <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">${icon('truck','w-5 h-5')}</div>
+            <div><div class="font-extrabold text-lg text-ink-900">Free delivery</div><div class="text-ink-500 text-sm">On orders above ₹499</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATEGORY GRID -->
+      <section class="mb-10">
+        <div class="flex items-end justify-between mb-4">
+          <h2 class="font-extrabold text-xl">Shop by category</h2>
+          <a href="#/products" class="text-sm text-brand-700 font-semibold flex items-center gap-1">View all ${icon('arrow','w-4 h-4')}</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          ${categories.map(c=>`
+            <a href="#/products?cat=${c.id}" class="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-ink-200 hover:border-brand-300 hover:shadow-soft transition">
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center transition group-hover:scale-105" style="background:${c.tint}">${icon(c.icon,'w-7 h-7 text-ink-700')}</div>
+              <div class="text-xs font-semibold text-center text-ink-700">${c.name.split(' ')[0]}</div>
+            </a>`).join('')}
+        </div>
+      </section>
+
+      <!-- TRENDING -->
+      <section class="mb-10">
+        <div class="flex items-end justify-between mb-4">
+          <div><h2 class="font-extrabold text-xl">Trending now</h2><p class="text-sm text-ink-500">Most-loved picks this week</p></div>
+          <a href="#/products?sort=rating" class="text-sm text-brand-700 font-semibold flex items-center gap-1">See more ${icon('arrow','w-4 h-4')}</a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          ${P.filter(p=>p.tags.includes('Trending')||p.tags.includes('Bestseller')).slice(0,4).map(productCard).join('')}
+        </div>
+      </section>
+
+      <!-- PROMO STRIP -->
+      <section class="mb-10 grid md:grid-cols-2 gap-4">
+        <div class="rounded-3xl bg-ink-100 p-6 flex items-center gap-5">
+          <div class="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center shrink-0">${icon('shield','w-7 h-7')}</div>
+          <div><div class="font-extrabold text-lg">100% Buyer Protection</div><div class="text-sm text-ink-600">Easy 7-day returns · Secure payments · Verified sellers only</div></div>
+        </div>
+        <div class="rounded-3xl bg-ink-100 p-6 flex items-center gap-5">
+          <div class="w-16 h-16 rounded-2xl bg-ink-900 text-white flex items-center justify-center shrink-0">${icon('truck','w-7 h-7')}</div>
+          <div><div class="font-extrabold text-lg">Lightning-fast delivery</div><div class="text-sm text-ink-600">Same-day in 12 cities · Next-day across 800+ pincodes</div></div>
+        </div>
+      </section>
+
+      <!-- RECOMMENDED -->
+      <section class="mb-10">
+        <div class="flex items-end justify-between mb-4">
+          <div><h2 class="font-extrabold text-xl">Recommended for you</h2><p class="text-sm text-ink-500">Picked based on your interest</p></div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          ${P.slice(0,10).sort(()=>Math.random()-0.5).slice(0,5).map(productCard).join('')}
+        </div>
+      </section>
+
+      <!-- BECOME SELLER CTA -->
+      <section class="rounded-3xl bg-white border border-ink-200 p-8 md:p-12 shadow-soft flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="font-extrabold text-2xl">Sell to all of India. From your home.</h2>
+          <p class="text-ink-600 mt-2 max-w-xl">Join 15,000+ sellers on ApnaBazaar. Reach customers across 28 states with low fees and powerful seller tools.</p>
+        </div>
+        <a href="#/seller" class="bg-ink-900 text-white font-semibold text-sm px-6 h-12 rounded-xl flex items-center gap-2 hover:bg-ink-800 transition whitespace-nowrap">${icon('arrow','w-4 h-4')} Open Seller Dashboard</a>
+      </section>
+    </div>`;
+}
+
+/* ============================================================
+   PRODUCT CARD
+============================================================ */
+function productCard(p){
+  const wished = state.wishlist.includes(p.id);
+  const disc = discount(p);
+  return `
+    <div class="group bg-white rounded-2xl border border-ink-200 hover:border-ink-300 hover:shadow-card transition overflow-hidden flex flex-col">
+      <div class="relative aspect-square overflow-hidden">
+        <a href="#/product/${p.id}" class="block w-full h-full">${productImg(p)}</a>
+        ${disc>0?`<span class="absolute top-2.5 left-2.5 bg-brand-600 text-white text-[10px] font-bold px-2 py-1 rounded-md">-${disc}%</span>`:''}
+        ${p.tags[0]?`<span class="absolute top-2.5 right-10 bg-ink-900/90 text-white text-[10px] font-semibold px-2 py-1 rounded-md">${p.tags[0]}</span>`:''}
+        <button onclick="toggleWish(${p.id})" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur shadow-soft flex items-center justify-center hover:scale-110 transition ${wished?'text-brand-600':'text-ink-400'}">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="${wished?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21.4l8.8-8.7a5 5 0 0 0 0-7.1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="p-3.5 flex flex-col flex-1">
+        <div class="text-[11px] text-ink-400 font-medium">${p.brand}</div>
+        <a href="#/product/${p.id}" class="text-sm font-semibold text-ink-900 leading-snug line-clamp-2 hover:text-brand-700">${p.name}</a>
+        <div class="flex items-center gap-1.5 mt-1.5">${ratingStars(p.rating)}<span class="text-[11px] text-ink-500">${p.rating} (${(p.reviews/1000).toFixed(1)}k)</span></div>
+        <div class="flex items-baseline gap-2 mt-2">
+          <span class="font-extrabold text-ink-900">${money(p.price)}</span>
+          ${p.mrp>p.price?`<span class="text-xs text-ink-400 line-through">${money(p.mrp)}</span>`:''}
+        </div>
+        <div class="flex items-center gap-1.5 mt-1 text-[11px] text-ink-500">${icon('truck','w-3.5 h-3.5')} Free delivery</div>
+        <div class="mt-3 flex gap-2">
+          <button onclick="addToCart(${p.id})" class="flex-1 h-9 bg-ink-900 hover:bg-ink-800 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5">${icon('cart','w-3.5 h-3.5')} Add</button>
+          <a href="#/product/${p.id}" class="h-9 px-3 border border-ink-200 hover:bg-ink-50 text-ink-700 text-xs font-semibold rounded-lg transition flex items-center gap-1">${icon('eye','w-3.5 h-3.5')}</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   VIEWS — PRODUCTS LISTING
+============================================================ */
+function applyFilters(list, q){
+  let arr = [...list];
+  if(q.cat){ state.filters.cat=[q.cat]; }
+  if(q.deals){ arr = arr.filter(p=>discount(p)>=20); }
+  if(state.search){ const s=state.search.toLowerCase(); arr=arr.filter(p=>p.name.toLowerCase().includes(s)||p.brand.toLowerCase().includes(s)||catName(p.cat).toLowerCase().includes(s)); }
+  if(state.filters.cat.length) arr=arr.filter(p=>state.filters.cat.includes(p.cat));
+  arr = arr.filter(p=>p.price>=state.filters.minPrice && p.price<=state.filters.maxPrice);
+  if(state.filters.rating) arr=arr.filter(p=>p.rating>=state.filters.rating);
+  const s = state.filters.sort;
+  if(s==='price_asc') arr.sort((a,b)=>a.price-b.price);
+  else if(s==='price_desc') arr.sort((a,b)=>b.price-a.price);
+  else if(s==='rating') arr.sort((a,b)=>b.rating-a.rating);
+  else if(s==='newest') arr.sort((a,b)=>b.id-a.id);
+  return arr;
+}
+
+function productsView(q){
+  if(q.cat){ state.filters.cat=[q.cat]; }
+  if(q.sort){ state.filters.sort=q.sort; }
+  const list = applyFilters(P, q);
+  const selCat = q.cat ? catName(q.cat) : (q.deals?'Today\'s Deals':'All Products');
+  $('#view').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4 py-6 fade-in">
+      <div class="text-xs text-ink-400 mb-3 flex items-center gap-1"><a href="#/" class="hover:text-ink-700">Home</a>${icon('chevron','w-3 h-3')}<span class="text-ink-700">${selCat}</span></div>
+      <div class="flex items-center justify-between mb-4">
+        <div><h1 class="font-extrabold text-2xl">${selCat}</h1><p class="text-sm text-ink-500">${list.length} products found</p></div>
+        <button onclick="toggleFilters()" class="lg:hidden flex items-center gap-2 px-4 h-10 border border-ink-200 rounded-xl text-sm font-semibold">${icon('filter','w-4 h-4')} Filters</button>
+      </div>
+      <div class="flex gap-6">
+        <aside id="filterAside" class="hidden lg:block w-64 shrink-0">
+          ${filterPanel()}
+        </aside>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-4 bg-white border border-ink-200 rounded-xl p-3">
+            <div class="text-sm text-ink-600">Sort by</div>
+            <select id="sortSel" onchange="state.filters.sort=this.value;router()" class="h-9 px-3 text-sm border border-ink-200 rounded-lg bg-white font-medium">
+              <option value="relevance" ${state.filters.sort==='relevance'?'selected':''}>Relevance</option>
+              <option value="price_asc" ${state.filters.sort==='price_asc'?'selected':''}>Price: Low to High</option>
+              <option value="price_desc" ${state.filters.sort==='price_desc'?'selected':''}>Price: High to Low</option>
+              <option value="rating" ${state.filters.sort==='rating'?'selected':''}>Customer Rating</option>
+              <option value="newest" ${state.filters.sort==='newest'?'selected':''}>Newest First</option>
+            </select>
+          </div>
+          ${list.length===0?`
+            <div class="text-center py-20 bg-white rounded-2xl border border-ink-200">
+              <div class="w-16 h-16 rounded-2xl bg-ink-100 mx-auto flex items-center justify-center text-ink-400">${icon('search','w-7 h-7')}</div>
+              <h3 class="font-bold text-lg mt-4">No products found</h3>
+              <p class="text-sm text-ink-500 mt-1">Try adjusting your filters or search</p>
+              <button onclick="resetFilters()" class="mt-4 px-5 h-10 bg-brand-600 text-white text-sm font-semibold rounded-xl">Clear all filters</button>
+            </div>`:`<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">${list.map(productCard).join('')}</div>`}
+        </div>
+      </div>
+    </div>`;
+}
+function toggleFilters(){ $('#filterAside').classList.toggle('hidden'); $('#filterAside').classList.toggle('block'); }
+function resetFilters(){ state.filters={cat:[],minPrice:0,maxPrice:50000,rating:0,sort:'relevance'}; state.search=''; location.hash='#/products'; router(); }
+function filterPanel(){
+  return `
+    <div class="bg-white border border-ink-200 rounded-xl p-4 sticky top-32">
+      <div class="flex items-center justify-between mb-3"><h3 class="font-bold">Filters</h3><button onclick="resetFilters()" class="text-xs text-brand-700 font-semibold">Clear all</button></div>
+      <div class="border-t border-ink-100 pt-3">
+        <h4 class="text-xs font-bold text-ink-600 mb-2">CATEGORY</h4>
+        <div class="space-y-1.5">
+          ${categories.map(c=>`
+            <label class="flex items-center gap-2.5 text-sm text-ink-700 cursor-pointer hover:text-ink-900">
+              <input type="checkbox" class="checkbox-brand w-4 h-4 rounded" ${state.filters.cat.includes(c.id)?'checked':''} onchange="toggleCatFilter('${c.id}', this.checked)">
+              ${c.name}
+              <span class="ml-auto text-xs text-ink-400">${P.filter(p=>p.cat===c.id).length}</span>
+            </label>`).join('')}
+        </div>
+      </div>
+      <div class="border-t border-ink-100 pt-3 mt-3">
+        <h4 class="text-xs font-bold text-ink-600 mb-2">PRICE RANGE</h4>
+        <div class="flex items-center gap-2">
+          <input type="number" placeholder="Min" value="${state.filters.minPrice}" onchange="state.filters.minPrice=+this.value||0;router()" class="w-full h-9 px-2 text-sm border border-ink-200 rounded-lg">
+          <span class="text-ink-400">—</span>
+          <input type="number" placeholder="Max" value="${state.filters.maxPrice}" onchange="state.filters.maxPrice=+this.value||50000;router()" class="w-full h-9 px-2 text-sm border border-ink-200 rounded-lg">
+        </div>
+        <input type="range" min="0" max="50000" step="500" value="${state.filters.maxPrice}" oninput="state.filters.maxPrice=+this.value;router()" class="w-full mt-3 accent-brand-600">
+        <div class="flex justify-between text-[11px] text-ink-400"><span>₹0</span><span>₹50,000+</span></div>
+      </div>
+      <div class="border-t border-ink-100 pt-3 mt-3">
+        <h4 class="text-xs font-bold text-ink-600 mb-2">CUSTOMER RATING</h4>
+        <div class="space-y-1.5">
+          ${[4,3,2,1].map(r=>`
+            <label class="flex items-center gap-2 text-sm text-ink-700 cursor-pointer">
+              <input type="radio" name="rating" class="checkbox-brand w-4 h-4" ${state.filters.rating===r?'checked':''} onchange="state.filters.rating=${r};router()">
+              ${ratingStars(r)} <span class="text-xs text-ink-500">& up</span>
+            </label>`).join('')}
+            <label class="flex items-center gap-2 text-sm text-ink-700 cursor-pointer"><input type="radio" name="rating" class="checkbox-brand w-4 h-4" ${state.filters.rating===0?'checked':''} onchange="state.filters.rating=0;router()"> <span class="text-xs">All ratings</span></label>
+        </div>
+      </div>
+    </div>`;
+}
+function toggleCatFilter(id, on){
+  if(on) state.filters.cat.push(id); else state.filters.cat = state.filters.cat.filter(c=>c!==id);
+  router();
+}
+
+/* ============================================================
+   VIEWS — PRODUCT DETAILS
+============================================================ */
+let activeImg=0, activeTab='desc';
+function productView(id){
+  const p = prod(id); if(!p){ notFound(); return; }
+  const wished = state.wishlist.includes(p.id);
+  const s = seller(p.seller);
+  const disc = discount(p);
+  const related = P.filter(x=>x.cat===p.cat && x.id!==p.id).slice(0,4);
+  activeImg=0; activeTab='desc';
+  $('#view').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4 py-6 fade-in">
+      <div class="text-xs text-ink-400 mb-4 flex items-center gap-1 flex-wrap"><a href="#/" class="hover:text-ink-700">Home</a>${icon('chevron','w-3 h-3')}<a href="#/products?cat=${p.cat}" class="hover:text-ink-700">${catName(p.cat)}</a>${icon('chevron','w-3 h-3')}<span class="text-ink-700">${p.name}</span></div>
+      <div class="grid lg:grid-cols-2 gap-8">
+        <!-- Gallery -->
+        <div>
+          <div class="rounded-2xl border border-ink-200 aspect-square overflow-hidden bg-white">${productImg(p,600,600)}</div>
+          <div class="grid grid-cols-4 gap-3 mt-3">
+            ${[0,1,2,3].map(i=>`<button onclick="toast('Image preview')" class="aspect-square rounded-xl border ${i===0?'border-brand-500':'border-ink-200'} bg-white overflow-hidden">${productImg(p)}</button>`).join('')}
+          </div>
+        </div>
+        <!-- Info -->
+        <div>
+          <div class="text-sm text-brand-700 font-semibold">${p.brand}</div>
+          <h1 class="font-extrabold text-2xl md:text-3xl mt-1">${p.name}</h1>
+          <div class="flex items-center gap-3 mt-3">
+            ${ratingStars(p.rating,'w-4 h-4')} <span class="text-sm font-semibold">${p.rating}</span>
+            <span class="text-sm text-ink-500">${p.reviews.toLocaleString('en-IN')} ratings</span>
+            ${p.tags[0]?`<span class="bg-brand-50 text-brand-700 text-xs font-bold px-2 py-1 rounded-md">${p.tags[0]}</span>`:''}
+          </div>
+          <div class="flex items-baseline gap-3 mt-5">
+            <span class="font-extrabold text-3xl text-ink-900">${money(p.price)}</span>
+            ${disc>0?`<span class="text-lg text-ink-400 line-through">${money(p.mrp)}</span><span class="text-brand-700 font-bold text-sm">${disc}% off</span>`:''}
+          </div>
+          <div class="text-sm text-ink-500 mt-1">Inclusive of all taxes</div>
+          <div class="flex items-center gap-2 mt-4 text-sm">
+            ${p.stock>0?`<span class="inline-flex items-center gap-1.5 text-green-700 font-semibold">${icon('check','w-4 h-4')} In stock (${p.stock} left)</span>`:`<span class="text-red-600 font-semibold">Out of stock</span>`}
+          </div>
+          <div class="flex items-center gap-2 mt-4 text-sm text-ink-600"><span class="w-8 h-8 rounded-lg bg-ink-100 flex items-center justify-center">${icon('truck','w-4 h-4')}</span> Free delivery by <b class="text-ink-900">${new Date(Date.now()+3*86400000).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</b></div>
+          <!-- Seller -->
+          <div class="mt-5 p-4 rounded-2xl border border-ink-200 bg-white flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-ink-100 flex items-center justify-center text-ink-600 font-bold">${s.name.slice(0,1)}</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2"><span class="font-semibold text-sm">${s.name}</span>${s.verified?`<span class="text-brand-600">${icon('shield','w-3.5 h-3.5')}</span>`:''}</div>
+              <div class="text-xs text-ink-500">${ratingStars(s.rating,'w-3 h-3')} ${s.rating} · ${s.products} products · ${s.location}</div>
+            </div>
+            <a href="#" onclick="toast('Visit seller store');return false;" class="text-xs font-semibold text-brand-700 border border-brand-200 px-3 h-8 rounded-lg flex items-center hover:bg-brand-50">Visit store</a>
+          </div>
+          <!-- Actions -->
+          <div class="flex gap-3 mt-6">
+            <button onclick="addToCart(${p.id})" class="flex-1 h-12 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition">${icon('cart','w-5 h-5')} Add to Cart</button>
+            <button onclick="addToCart(${p.id});location.hash='#/checkout';router()" class="flex-1 h-12 bg-ink-900 hover:bg-ink-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition">${icon('bag','w-5 h-5')} Buy Now</button>
+            <button onclick="toggleWish(${p.id})" class="w-12 h-12 border border-ink-200 hover:bg-ink-50 rounded-xl flex items-center justify-center ${wished?'text-brand-600':'text-ink-500'}">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="${wished?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21.4l8.8-8.7a5 5 0 0 0 0-7.1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <!-- Delivery -->
+          <div class="mt-6 p-4 rounded-2xl bg-ink-50 border border-ink-200">
+            <h4 class="font-bold text-sm mb-3">Delivery Options</h4>
+            <div class="flex gap-2"><input placeholder="Enter PIN code" class="flex-1 h-10 px-3 text-sm border border-ink-200 rounded-lg bg-white"><button onclick="toast('Delivery available · Free shipping')" class="h-10 px-4 bg-ink-900 text-white text-sm font-semibold rounded-lg">Check</button></div>
+            <div class="grid grid-cols-3 gap-2 mt-3 text-xs text-ink-600">
+              <div class="flex flex-col items-center gap-1 text-center"><span class="w-8 h-8 rounded-lg bg-white border border-ink-200 flex items-center justify-center text-brand-600">${icon('truck','w-4 h-4')}</span>Free Delivery</div>
+              <div class="flex flex-col items-center gap-1 text-center"><span class="w-8 h-8 rounded-lg bg-white border border-ink-200 flex items-center justify-center text-brand-600">${icon('box','w-4 h-4')}</span>7-day Returns</div>
+              <div class="flex flex-col items-center gap-1 text-center"><span class="w-8 h-8 rounded-lg bg-white border border-ink-200 flex items-center justify-center text-brand-600">${icon('shield','w-4 h-4')}</span>Warranty</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="mt-10">
+        <div class="flex gap-6 border-b border-ink-200">
+          <button onclick="setTab('desc')" class="pb-3 text-sm font-semibold border-b-2 ${activeTab==='desc'?'tab-active':'border-transparent text-ink-500'}">Description</button>
+          <button onclick="setTab('spec')" class="pb-3 text-sm font-semibold border-b-2 ${activeTab==='spec'?'tab-active':'border-transparent text-ink-500'}">Specifications</button>
+          <button onclick="setTab('rev')" class="pb-3 text-sm font-semibold border-b-2 ${activeTab==='rev'?'tab-active':'border-transparent text-ink-500'}">Reviews (${p.reviews.toLocaleString('en-IN')})</button>
+        </div>
+        <div id="tabContent" class="py-6"></div>
+      </div>
+
+      <!-- Related -->
+      <div class="mt-8">
+        <h2 class="font-extrabold text-xl mb-4">You may also like</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">${related.map(productCard).join('')}</div>
+      </div>
+    </div>`;
+  setTab(activeTab);
+}
+function setTab(t){
+  activeTab=t;
+  document.querySelectorAll('#view [onclick^="setTab"]').forEach((b,i)=>{
+    b.className = 'pb-3 text-sm font-semibold border-b-2 '+(i===(t==='desc'?0:t==='spec'?1:2)?'tab-active':'border-transparent text-ink-500');
+  });
+  const p = prod(parseHash().seg[1]); if(!p) return;
+  const reviews = [
+    {name:'Priya M.', rating:5, date:'2 days ago', text:'Excellent quality and fast delivery. Exactly as described. Highly recommend!'},
+    {name:'Rahul K.', rating:4, date:'1 week ago', text:'Good product for the price. Packaging could be better but the item itself is solid.'},
+    {name:'Sneha R.', rating:5, date:'3 weeks ago', text:'Loved it! Genuine product, sealed packaging. Will buy again from this seller.'}
+  ];
+  const tc = $('#tabContent');
+  if(t==='desc') tc.innerHTML = `<div class="max-w-3xl"><p class="text-ink-700 leading-relaxed">${p.desc}</p><p class="text-ink-700 leading-relaxed mt-4">This ${p.brand} product is sourced directly from verified Indian sellers on ApnaBazaar. Each unit goes through quality checks to ensure you receive authentic merchandise. Backed by our 7-day return policy and dedicated customer support.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">${['Genuine Product','Secure Packaging','Fast Dispatch','Easy Returns'].map(x=>`<div class="flex items-center gap-2 p-3 rounded-xl bg-ink-50 text-sm"><span class="text-brand-600">${icon('check','w-4 h-4')}</span>${x}</div>`).join('')}</div></div>`;
+  else if(t==='spec') tc.innerHTML = `<div class="max-w-2xl"><table class="w-full text-sm"><tbody>${Object.entries(p.specs).map(([k,v])=>`<tr class="border-b border-ink-100"><td class="py-3 text-ink-500 font-medium w-1/3 capitalize">${k}</td><td class="py-3 font-semibold text-ink-900">${v}</td></tr>`).join('')}</tbody></table></div>`;
+  else tc.innerHTML = `<div class="max-w-3xl"><div class="flex items-center gap-6 p-5 rounded-2xl bg-ink-50 mb-6"><div class="text-center"><div class="text-4xl font-extrabold">${p.rating}</div>${ratingStars(p.rating,'w-4 h-4')}<div class="text-xs text-ink-500 mt-1">${p.reviews.toLocaleString('en-IN')} ratings</div></div><div class="flex-1 space-y-1">${[5,4,3,2,1].map(s=>{const w=p.rating>=s?80-s*15:Math.random()*40;return `<div class="flex items-center gap-2 text-xs"><span class="w-3">${s}</span>${icon('star','w-3 h-3 text-brand-500')}<div class="flex-1 h-2 bg-ink-200 rounded-full overflow-hidden"><div class="h-full bg-brand-500" style="width:${Math.max(10,100-s*15)}%"></div></div></div>`;}).join('')}</div></div><div class="space-y-4">${reviews.map(r=>`<div class="p-4 rounded-2xl border border-ink-200"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center font-bold text-ink-600">${r.name.slice(0,1)}</div><div><div class="font-semibold text-sm">${r.name}</div>${ratingStars(r.rating,'w-3 h-3')}</div></div><div class="text-xs text-ink-400">${r.date}</div></div><p class="text-sm text-ink-700 mt-3">${r.text}</p><div class="text-xs text-ink-400 mt-2 flex items-center gap-1">${icon('check','w-3 h-3 text-green-600')} Verified Purchase</div></div>`).join('')}<button onclick="toast('Review form opened')" class="w-full h-11 border border-ink-200 hover:bg-ink-50 rounded-xl text-sm font-semibold">Write a review</button></div></div>`;
+}
+
+/* ============================================================
+   VIEWS — CART
+============================================================ */
+function cartView(){
+  if(state.cart.length===0){
+    $('#view').innerHTML = `<div class="max-w-2xl mx-auto px-4 py-20 text-center fade-in">
+      <div class="w-20 h-20 rounded-3xl bg-ink-100 mx-auto flex items-center justify-center text-ink-300">${icon('cart','w-9 h-9')}</div>
+      <h2 class="font-extrabold text-2xl mt-6">Your cart is empty</h2>
+      <p class="text-ink-500 mt-2">Looks like you haven't added anything yet. Let's fix that.</p>
+      <a href="#/products" class="inline-flex items-center gap-2 mt-6 px-6 h-12 bg-brand-600 text-white font-semibold rounded-xl">${icon('bag','w-5 h-5')} Start Shopping</a>
+    </div>`; return;
+  }
+  const subtotal = cartTotal(); const del = deliveryCharge(); const total = subtotal+del;
+  $('#view').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4 py-6 fade-in">
+      <h1 class="font-extrabold text-2xl mb-1">Shopping Cart</h1>
+      <p class="text-sm text-ink-500 mb-6">${cartCount()} item${cartCount()>1?'s':''} in your cart</p>
+      <div class="grid lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-3">
+          ${state.cart.map(c=>{const p=prod(c.id); const d=discount(p); return `
+          <div class="bg-white border border-ink-200 rounded-2xl p-4 flex gap-4">
+            <a href="#/product/${p.id}" class="w-24 h-24 rounded-xl overflow-hidden border border-ink-100 shrink-0">${productImg(p)}</a>
+            <div class="flex-1 min-w-0">
+              <div class="text-[11px] text-ink-400 font-medium">${p.brand}</div>
+              <a href="#/product/${p.id}" class="font-semibold text-sm leading-snug hover:text-brand-700 line-clamp-1">${p.name}</a>
+              <div class="flex items-center gap-2 mt-1">${ratingStars(p.rating,'w-3 h-3')}<span class="text-xs text-ink-500">${p.rating}</span></div>
+              <div class="flex items-baseline gap-2 mt-2"><span class="font-extrabold">${money(p.price)}</span>${d>0?`<span class="text-xs text-ink-400 line-through">${money(p.mrp)}</span><span class="text-xs text-brand-700 font-bold">${d}% off</span>`:''}</div>
+              <div class="flex items-center justify-between mt-3">
+                <div class="flex items-center border border-ink-200 rounded-lg">
+                  <button onclick="updateQty(${p.id},-1)" class="w-8 h-8 flex items-center justify-center text-ink-600 hover:bg-ink-50">${icon('minus','w-3.5 h-3.5')}</button>
+                  <span class="w-9 text-center text-sm font-semibold">${c.qty}</span>
+                  <button onclick="updateQty(${p.id},1)" class="w-8 h-8 flex items-center justify-center text-ink-600 hover:bg-ink-50">${icon('plus','w-3.5 h-3.5')}</button>
+                </div>
+                <button onclick="toggleWish(${p.id})" class="text-xs font-semibold text-ink-600 hover:text-brand-700 flex items-center gap-1">${icon('heart','w-3.5 h-3.5')} Save</button>
+                <button onclick="removeCart(${p.id})" class="text-xs font-semibold text-ink-600 hover:text-red-600 flex items-center gap-1">${icon('trash','w-3.5 h-3.5')} Remove</button>
+              </div>
+            </div>
+          </div>`;}).join('')}
+          <a href="#/products" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:underline">${icon('chevron','w-4 h-4')} Continue shopping</a>
+        </div>
+        <div>
+          <div class="bg-white border border-ink-200 rounded-2xl p-5 sticky top-32">
+            <h3 class="font-bold text-lg mb-4">Price Details</h3>
+            <div class="space-y-2.5 text-sm">
+              <div class="flex justify-between"><span class="text-ink-600">Price (${cartCount()} items)</span><span class="font-semibold">${money(subtotal)}</span></div>
+              <div class="flex justify-between"><span class="text-ink-600">Discount</span><span class="text-green-700 font-semibold">Applied at checkout</span></div>
+              <div class="flex justify-between"><span class="text-ink-600">Delivery Charges</span><span class="font-semibold ${del===0?'text-green-700':''}">${del===0?'FREE':money(del)}</span></div>
+            </div>
+            <div class="flex justify-between border-t border-ink-200 pt-3 mt-3"><span class="font-bold">Total Amount</span><span class="font-extrabold text-lg">${money(total)}</span></div>
+            <a href="#/checkout" class="mt-5 w-full h-12 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition">${icon('bag','w-5 h-5')} Proceed to Checkout</a>
+            <div class="flex items-center gap-2 mt-3 text-xs text-ink-500 justify-center">${icon('shield','w-4 h-4')} Safe and secure payments</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   VIEWS — WISHLIST
+============================================================ */
+function wishlistView(){
+  if(state.wishlist.length===0){
+    $('#view').innerHTML = `<div class="max-w-2xl mx-auto px-4 py-20 text-center fade-in">
+      <div class="w-20 h-20 rounded-3xl bg-ink-100 mx-auto flex items-center justify-center text-ink-300">${icon('heart','w-9 h-9')}</div>
+      <h2 class="font-extrabold text-2xl mt-6">Your wishlist is empty</h2>
+      <p class="text-ink-500 mt-2">Tap the heart on any product to save it for later.</p>
+      <a href="#/products" class="inline-flex items-center gap-2 mt-6 px-6 h-12 bg-brand-600 text-white font-semibold rounded-xl">Explore Products</a>
+    </div>`; return;
+  }
+  $('#view').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4 py-6 fade-in">
+      <h1 class="font-extrabold text-2xl mb-1">My Wishlist</h1>
+      <p class="text-sm text-ink-500 mb-6">${state.wishlist.length} saved items</p>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">${state.wishlist.map(id=>productCard(prod(id))).join('')}</div>
+    </div>`;
+}
+
+/* ============================================================
+   VIEWS — CHECKOUT
+============================================================ */
+function checkoutView(){
+  if(state.cart.length===0){ location.hash='#/cart'; return; }
+  const subtotal = cartTotal(); const del = deliveryCharge(); const total = subtotal+del;
+  $('#view').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4 py-6 fade-in">
+      <div class="text-xs text-ink-400 mb-3 flex items-center gap-1"><a href="#/" class="hover:text-ink-700">Home</a>${icon('chevron','w-3 h-3')}<a href="#/cart" class="hover:text-ink-700">Cart</a>${icon('chevron','w-3 h-3')}<span class="text-ink-700">Checkout</span></div>
+      <h1 class="font-extrabold text-2xl mb-6">Checkout</h1>
+      <div class="grid lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-5">
+          <!-- Address -->
+          <div class="bg-white border border-ink-200 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3"><h3 class="font-bold flex items-center gap-2">${icon('map','w-5 h-5 text-brand-600')} Delivery Address</h3><button onclick="addAddress()" class="text-sm font-semibold text-brand-700 flex items-center gap-1">${icon('plus','w-4 h-4')} Add new</button></div>
+            <div class="space-y-2.5">
+              ${state.addresses.map(a=>`
+                <label class="flex gap-3 p-3 rounded-xl border ${a.default?'border-brand-500 bg-brand-50/40':'border-ink-200'} cursor-pointer hover:border-ink-300">
+                  <input type="radio" name="addr" class="checkbox-brand mt-1" ${a.default?'checked':''}>
+                  <div class="flex-1">
+                    <div class="font-semibold text-sm">${a.name} <span class="text-xs text-ink-500 font-normal">· ${a.phone}</span></div>
+                    <div class="text-sm text-ink-600">${a.line}, ${a.city}, ${a.state} - ${a.pin}</div>
+                  </div>
+                  ${a.default?`<span class="text-[10px] font-bold text-brand-700 bg-brand-100 px-2 py-1 rounded">DEFAULT</span>`:''}
+                </label>`).join('')}
+            </div>
+          </div>
+          <!-- Payment -->
+          <div class="bg-white border border-ink-200 rounded-2xl p-5">
+            <h3 class="font-bold mb-3 flex items-center gap-2">${icon('shield','w-5 h-5 text-brand-600')} Payment Method</h3>
+            <div class="space-y-2.5">
+              ${[['upi','UPI','Pay using any UPI app — GPay, PhonePe, Paytm'],['card','Credit / Debit Card','Visa, Mastercard, RuPay, Amex'],['netbanking','Net Banking','All major banks supported'],['cod','Cash on Delivery','Pay when your order arrives']].map(([id,t,d],i)=>`
+                <label class="flex gap-3 p-3.5 rounded-xl border border-ink-200 cursor-pointer hover:border-ink-300 ${i===0?'border-brand-500 bg-brand-50/40':''}">
+                  <input type="radio" name="pay" class="checkbox-brand mt-1" ${i===0?'checked':''}>
+                  <div class="flex-1"><div class="font-semibold text-sm">${t}</div><div class="text-xs text-ink-500 mt-0.5">${d}</div></div>
+                  <div class="text-ink-300">${icon(id==='cod'?'rupee':id==='upi'?'phone':id==='card'?'tag':'shield','w-5 h-5')}</div>
+                </label>`).join('')}
+            </div>
+            <div id="upiBox" class="mt-3 p-3.5 bg-ink-50 rounded-xl">
+              <div class="text-xs text-ink-600 mb-2 font-semibold">Enter UPI ID</div>
+              <input placeholder="yourname@upi" class="w-full h-10 px-3 text-sm border border-ink-200 rounded-lg bg-white">
+            </div>
+          </div>
+          <!-- Place order -->
+          <button onclick="placeOrder()" class="w-full h-14 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition">${icon('check','w-5 h-5')} Place Order · ${money(total)}</button>
+        </div>
+        <div>
+          <div class="bg-white border border-ink-200 rounded-2xl p-5 sticky top-32">
+            <h3 class="font-bold text-lg mb-4">Order Summary</h3>
+            <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
+              ${state.cart.map(c=>{const p=prod(c.id);return `<div class="flex gap-3"><div class="w-14 h-14 rounded-lg overflow-hidden border border-ink-100 shrink-0">${productImg(p)}</div><div class="flex-1 min-w-0"><div class="text-sm font-semibold line-clamp-1">${p.name}</div><div class="text-xs text-ink-500">Qty ${c.qty} · ${money(p.price)}</div></div><div class="text-sm font-bold">${money(p.price*c.qty)}</div></div>`;}).join('')}
+            </div>
+            <div class="border-t border-ink-200 pt-3 mt-3 space-y-2 text-sm">
+              <div class="flex justify-between"><span class="text-ink-600">Subtotal</span><span class="font-semibold">${money(subtotal)}</span></div>
+              <div class="flex justify-between"><span class="text-ink-600">Delivery</span><span class="font-semibold ${del===0?'text-green-700':''}">${del===0?'FREE':money(del)}</span></div>
+              <div class="flex justify-between border-t border-ink-200 pt-2"><span class="font-bold">Total</span><span class="font-extrabold text-lg">${money(total)}</span></div>
+            </div>
+            <div class="mt-3 text-xs text-ink-500 flex items-center gap-1.5">${icon('truck','w-4 h-4')} Delivery by ${new Date(Date.now()+3*86400000).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function addAddress(){
+  openModal(`<div class="p-6"><div class="flex items-center justify-between mb-4"><h3 class="font-bold text-lg">Add new address</h3><button onclick="closeModal()" class="w-9 h-9 rounded-xl hover:bg-ink-100 flex items-center justify-center">${icon('x')}</button></div><form onsubmit="event.preventDefault();closeModal();toast('Address added')" class="space-y-3">
+    <div class="grid grid-cols-2 gap-3"><input placeholder="Full name" required class="h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"><input placeholder="Phone" required class="h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+    <input placeholder="Address line" required class="w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50">
+    <div class="grid grid-cols-3 gap-3"><input placeholder="City" required class="h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"><input placeholder="State" required class="h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"><input placeholder="PIN" required class="h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+    <button class="w-full h-11 bg-brand-600 text-white font-semibold rounded-xl">Save Address</button></form></div>`);
+}
+function placeOrder(){
+  const newOrder = {id:'AB'+Math.floor(Math.random()*90000+10000), date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}), items:[...state.cart], total:cartTotal()+deliveryCharge(), status:'ordered', eta:'Dispatch by '+new Date(Date.now()+2*86400000).toLocaleDateString('en-IN',{day:'2-digit',month:'short'})};
+  state.orders.unshift(newOrder);
+  state.cart=[];
+  renderHeader();
+  toast('Order placed successfully!');
+  setTimeout(()=>{location.hash='#/orders/'+newOrder.id; router();}, 600);
+}
+
+/* ============================================================
+   VIEWS — ORDERS
+============================================================ */
+function ordersView(orderId){
+  if(orderId){
+    const o = state.orders.find(x=>x.id===orderId);
+    if(!o){ location.hash='#/orders'; return; }
+    const curStep = statusSteps.indexOf(o.status);
+    $('#view').innerHTML = `<div class="max-w-4xl mx-auto px-4 py-6 fade-in">
+      <div class="text-xs text-ink-400 mb-3 flex items-center gap-1"><a href="#/orders" class="hover:text-ink-700">My Orders</a>${icon('chevron','w-3 h-3')}<span class="text-ink-700">${o.id}</span></div>
+      <div class="bg-white border border-ink-200 rounded-2xl p-6">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+          <div><div class="text-xs text-ink-500">Order ID</div><h1 class="font-extrabold text-xl">${o.id}</h1><div class="text-sm text-ink-500 mt-1">Placed on ${o.date}</div></div>
+          <div class="text-right"><div class="text-xs text-ink-500">Total paid</div><div class="font-extrabold text-lg">${money(o.total)}</div></div>
+        </div>
+        <!-- Timeline -->
+        <div class="mb-8">
+          <h3 class="font-bold mb-5">Order Status</h3>
+          <div class="relative">
+            <div class="absolute left-4 top-4 bottom-4 w-0.5 bg-ink-200"></div>
+            <div class="absolute left-4 top-4 w-0.5 bg-brand-500 transition-all" style="height:calc(${curStep}/5 * calc(100% - 2rem))"></div>
+            ${statusSteps.map((s,i)=>`
+              <div class="flex gap-4 mb-5 last:mb-0 relative">
+                <div class="w-8 h-8 rounded-full ${i<=curStep?'bg-brand-600 text-white':'bg-ink-200 text-ink-400'} flex items-center justify-center shrink-0 z-10 text-xs font-bold">${i<=curStep?icon('check','w-4 h-4'):i+1}</div>
+                <div class="pt-1"><div class="font-semibold text-sm ${i<=curStep?'text-ink-900':'text-ink-400'}">${statusLabels[s]}</div><div class="text-xs text-ink-500 mt-0.5">${i===curStep?o.eta:i<curStep?'Completed':i===curStep+1?'Pending':''}</div></div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <!-- Items -->
+        <h3 class="font-bold mb-3">Items in this order</h3>
+        <div class="space-y-3">${o.items.map(c=>{const p=prod(c.id);return `<a href="#/product/${p.id}" class="flex gap-3 p-3 rounded-xl border border-ink-200 hover:bg-ink-50"><div class="w-16 h-16 rounded-lg overflow-hidden border border-ink-100">${productImg(p)}</div><div class="flex-1"><div class="font-semibold text-sm line-clamp-1">${p.name}</div><div class="text-xs text-ink-500">Qty ${c.qty} · ${money(p.price)}</div></div><div class="font-bold text-sm">${money(p.price*c.qty)}</div></a>`;}).join('')}</div>
+        <div class="flex gap-3 mt-6"><button onclick="toast('Invoice downloaded')" class="flex-1 h-11 border border-ink-200 hover:bg-ink-50 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">${icon('box','w-4 h-4')} Download Invoice</button><button onclick="toast('Support contacted')" class="flex-1 h-11 border border-ink-200 hover:bg-ink-50 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">${icon('alert','w-4 h-4')} Need Help?</button></div>
+      </div>
+    </div>`;
+    return;
+  }
+  if(state.orders.length===0){
+    $('#view').innerHTML = `<div class="max-w-2xl mx-auto px-4 py-20 text-center fade-in"><div class="w-20 h-20 rounded-3xl bg-ink-100 mx-auto flex items-center justify-center text-ink-300">${icon('box','w-9 h-9')}</div><h2 class="font-extrabold text-2xl mt-6">No orders yet</h2><p class="text-ink-500 mt-2">When you place orders, they'll appear here.</p><a href="#/products" class="inline-flex mt-6 px-6 h-12 bg-brand-600 text-white font-semibold rounded-xl">Start Shopping</a></div>`; return;
+  }
+  $('#view').innerHTML = `
+    <div class="max-w-5xl mx-auto px-4 py-6 fade-in">
+      <h1 class="font-extrabold text-2xl mb-1">My Orders</h1>
+      <p class="text-sm text-ink-500 mb-6">${state.orders.length} orders</p>
+      <div class="space-y-4">
+        ${state.orders.map(o=>{
+          const step=statusSteps.indexOf(o.status);
+          const pct = (step/5)*100;
+          return `
+          <a href="#/orders/${o.id}" class="block bg-white border border-ink-200 rounded-2xl p-5 hover:border-ink-300 hover:shadow-soft transition">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div><div class="text-xs text-ink-500">Order ${o.id}</div><div class="font-semibold text-sm">Placed on ${o.date}</div></div>
+              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:${statusColors[o.status]}"></span><span class="text-xs font-bold uppercase tracking-wide" style="color:${statusColors[o.status]}">${statusLabels[o.status]}</span></div>
+            </div>
+            <div class="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+              ${o.items.map(c=>{const p=prod(c.id);return `<div class="flex items-center gap-2 shrink-0"><div class="w-12 h-12 rounded-lg overflow-hidden border border-ink-100">${productImg(p)}</div><div><div class="text-xs font-medium line-clamp-1 max-w-[140px]">${p.name}</div><div class="text-[11px] text-ink-500">Qty ${c.qty}</div></div></div>`;}).join('')}
+            </div>
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-ink-100">
+              <div class="text-sm text-ink-600">${o.eta}</div>
+              <div class="font-extrabold">${money(o.total)}</div>
+            </div>
+            <div class="mt-3 h-1.5 bg-ink-100 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${statusColors[o.status]}"></div></div>
+          </a>`;}).join('')}
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   VIEWS — PROFILE
+============================================================ */
+function profileView(tab){
+  const tabs = ['personal','addresses','orders','wishlist','settings'];
+  const active = tab || 'personal';
+  $('#view').innerHTML = `
+    <div class="max-w-6xl mx-auto px-4 py-6 fade-in">
+      <h1 class="font-extrabold text-2xl mb-6">My Account</h1>
+      <div class="grid lg:grid-cols-4 gap-6">
+        <aside class="lg:col-span-1">
+          <div class="bg-white border border-ink-200 rounded-2xl p-5">
+            <div class="flex items-center gap-3 pb-4 border-b border-ink-100">
+              <div class="w-12 h-12 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-lg">${state.user.name.slice(0,1)}</div>
+              <div><div class="font-bold text-sm">${state.user.name}</div><div class="text-xs text-ink-500">${state.user.email}</div></div>
+            </div>
+            <nav class="mt-2 space-y-1">
+              ${[['personal','Personal Info','user'],['addresses','Saved Addresses','map'],['orders','My Orders','box'],['wishlist','Wishlist','heart'],['settings','Account Settings','settings']].map(([id,l,i])=>`
+                <a href="#/profile?tab=${id}" class="flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium ${active===id?'bg-brand-50 text-brand-700':'text-ink-600 hover:bg-ink-50'}">${icon(i,'w-4 h-4')} ${l}</a>`).join('')}
+              <button onclick="toast('Signed out')" class="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50">${icon('logout','w-4 h-4')} Sign Out</button>
+            </nav>
+          </div>
+        </aside>
+        <div class="lg:col-span-3">${profileTab(active)}</div>
+      </div>
+    </div>`;
+}
+function profileTab(t){
+  if(t==='personal') return `<div class="bg-white border border-ink-200 rounded-2xl p-6"><h3 class="font-bold text-lg mb-4">Personal Information</h3><form onsubmit="event.preventDefault();toast('Profile updated')" class="grid sm:grid-cols-2 gap-4">
+    <div><label class="text-xs font-semibold text-ink-600">Full Name</label><input value="${state.user.name}" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+    <div><label class="text-xs font-semibold text-ink-600">Email</label><input value="${state.user.email}" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+    <div><label class="text-xs font-semibold text-ink-600">Phone</label><input value="${state.user.phone}" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+    <div><label class="text-xs font-semibold text-ink-600">Account Type</label><select class="mt-1 w-full h-11 px-3 text-sm border border-ink-200 rounded-xl bg-ink-50"><option>Customer</option><option>Seller</option></select></div>
+    <div class="sm:col-span-2"><button class="px-6 h-11 bg-brand-600 text-white font-semibold rounded-xl">Save Changes</button></div>
+    </form></div>`;
+  if(t==='addresses') return `<div class="bg-white border border-ink-200 rounded-2xl p-6"><div class="flex items-center justify-between mb-4"><h3 class="font-bold text-lg">Saved Addresses</h3><button onclick="addAddress()" class="text-sm font-semibold text-brand-700 flex items-center gap-1">${icon('plus','w-4 h-4')} Add Address</button></div><div class="space-y-3">${state.addresses.map(a=>`<div class="p-4 rounded-xl border ${a.default?'border-brand-500 bg-brand-50/30':'border-ink-200'}"><div class="flex items-center justify-between"><div class="font-semibold text-sm">${a.name}</div>${a.default?`<span class="text-[10px] font-bold text-brand-700 bg-brand-100 px-2 py-1 rounded">DEFAULT</span>`:''}</div><div class="text-sm text-ink-600 mt-1">${a.line}, ${a.city}, ${a.state} - ${a.pin}</div><div class="text-xs text-ink-500 mt-1">${a.phone}</div><div class="flex gap-3 mt-3"><button onclick="toast('Edit address')" class="text-xs font-semibold text-ink-600 hover:text-brand-700">${icon('edit','w-3.5 h-3.5')} Edit</button><button onclick="toast('Address removed')" class="text-xs font-semibold text-ink-600 hover:text-red-600">${icon('trash','w-3.5 h-3.5')} Remove</button></div></div>`).join('')}</div></div>`;
+  if(t==='orders') return `<div class="bg-white border border-ink-200 rounded-2xl p-6"><h3 class="font-bold text-lg mb-4">Recent Orders</h3><div class="space-y-3">${state.orders.slice(0,5).map(o=>`<a href="#/orders/${o.id}" class="flex items-center justify-between p-3 rounded-xl border border-ink-200 hover:bg-ink-50"><div><div class="font-semibold text-sm">${o.id}</div><div class="text-xs text-ink-500">${o.date} · ${statusLabels[o.status]}</div></div><div class="font-bold text-sm">${money(o.total)}</div></a>`).join('')}<a href="#/orders" class="block text-center text-sm font-semibold text-brand-700 mt-3">View all orders</a></div></div>`;
+  if(t==='wishlist') return `<div class="bg-white border border-ink-200 rounded-2xl p-6"><h3 class="font-bold text-lg mb-4">Wishlist (${state.wishlist.length})</h3>${state.wishlist.length===0?'<p class="text-sm text-ink-500">No items saved yet.</p>':`<div class="grid sm:grid-cols-2 gap-3">${state.wishlist.map(id=>{const p=prod(id);return `<div class="flex gap-3 p-3 rounded-xl border border-ink-200"><div class="w-16 h-16 rounded-lg overflow-hidden border border-ink-100">${productImg(p)}</div><div class="flex-1"><div class="font-semibold text-sm line-clamp-1">${p.name}</div><div class="font-bold mt-1">${money(p.price)}</div><button onclick="addToCart(${p.id})" class="text-xs font-semibold text-brand-700 mt-1">Add to cart →</button></div></div>`}).join('')}</div>`}</div>`;
+  if(t==='settings') return `<div class="bg-white border border-ink-200 rounded-2xl p-6 space-y-5"><h3 class="font-bold text-lg">Account Settings</h3>${[['Email notifications about orders & offers',true],['SMS updates on order status',true],['Personalised recommendations',true],['Promotional marketing emails',false]].map(([l,on])=>`<div class="flex items-center justify-between py-3 border-b border-ink-100 last:border-0"><div class="text-sm font-medium">${l}</div><div class="switch ${on?'on':''}" onclick="this.classList.toggle('on')"></div></div>`).join('')}<div class="pt-3"><button class="px-6 h-11 bg-ink-900 text-white font-semibold rounded-xl">Update Password</button></div></div>`;
+  return profileTab('personal');
+}
+
+/* ============================================================
+   SELLER DASHBOARD
+============================================================ */
+function sellerView(tab){
+  $('#view').innerHTML = `
+    <div class="flex min-h-screen">
+      ${sellerSidebar(tab)}
+      <div class="flex-1 min-w-0 bg-ink-50">
+        <header class="bg-white border-b border-ink-200 px-6 h-16 flex items-center justify-between sticky top-0 z-30">
+          <div><h1 class="font-extrabold text-lg">${sellerTabs.find(t=>t[0]===tab)?.[1]||'Dashboard'}</h1><div class="text-xs text-ink-500">TechWorld India · Seller Portal</div></div>
+          <div class="flex items-center gap-2"><button onclick="location.hash='#/'" class="text-sm text-ink-600 hover:text-ink-900 px-3 h-9 rounded-lg hover:bg-ink-100">Storefront</button><div class="w-9 h-9 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center">T</div></div>
+        </header>
+        <div class="p-6 fade-in" id="sellerContent">${sellerContent(tab)}</div>
+      </div>
+    </div>`;
+}
+const sellerTabs = [['dashboard','Dashboard','chart'],['products','Products','box'],['add','Add Product','plus'],['orders','Orders','shopping'],['inventory','Inventory','package'],['analytics','Analytics','chart'],['profile','Seller Profile','settings']];
+function sellerSidebar(tab){
+  return `<aside class="w-60 bg-ink-900 text-ink-300 min-h-screen flex flex-col shrink-0 hidden md:flex">
+    <div class="h-16 px-5 flex items-center gap-2 border-b border-ink-800"><div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold">a</div><div class="leading-none"><div class="font-bold text-white">ApnaBazaar</div><div class="text-[10px] text-ink-400">Seller Center</div></div></div>
+    <nav class="flex-1 p-3 space-y-1">${sellerTabs.map(([id,l,i])=>`<a href="#/seller/${id}" class="flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium ${tab===id?'bg-brand-600 text-white':'hover:bg-ink-800 text-ink-300'}">${icon(i,'w-4 h-4')} ${l}</a>`).join('')}</nav>
+    <div class="p-3 border-t border-ink-800"><button onclick="location.hash='/'" class="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium hover:bg-ink-800">${icon('logout','w-4 h-4')} Exit Seller Mode</button></div>
+  </aside>`;
+}
+function sellerContent(tab){
+  if(tab==='dashboard'){
+    const stats=[['Total Revenue','₹4,28,940','+12.4%','chart','text-green-700'],['Total Orders','1,284','+8.1%','shopping','text-green-700'],['Products Listed','128','+5','box','text-ink-600'],['Pending Shipments','12','Action needed','truck','text-brand-700']];
+    return `<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">${stats.map(([l,v,d,i,c])=>`<div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between"><div class="w-10 h-10 rounded-xl bg-ink-100 flex items-center justify-center text-ink-600">${icon(i,'w-5 h-5')}</div><span class="text-xs font-bold ${c}">${d}</span></div><div class="text-xs text-ink-500 mt-3">${l}</div><div class="font-extrabold text-xl">${v}</div></div>`).join('')}</div>
+      <div class="grid lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between mb-4"><h3 class="font-bold">Sales — last 7 days</h3><select class="text-xs border border-ink-200 rounded-lg h-8 px-2"><option>This week</option><option>This month</option></select></div>${miniChart([42,58,49,67,75,61,84])}</div>
+        <div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Top Products</h3><div class="space-y-3">${P.slice(0,4).map(p=>`<div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg overflow-hidden border border-ink-100">${productImg(p)}</div><div class="flex-1 text-xs font-medium line-clamp-1">${p.name}</div><div class="text-xs font-bold">${money(p.price)}</div></div>`).join('')}</div></div>
+      </div>
+      <div class="bg-white border border-ink-200 rounded-2xl p-5 mt-4"><h3 class="font-bold mb-4">Recent Orders</h3>${miniOrdersTable(5,'s1')}</div>`;
+  }
+  if(tab==='products') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between mb-4"><h3 class="font-bold">My Products (${state.sellerProducts.length})</h3><a href="#/seller/add" class="px-4 h-10 bg-brand-600 text-white text-sm font-semibold rounded-xl flex items-center gap-2">${icon('plus','w-4 h-4')} Add Product</a></div>${productManageTable(state.sellerProducts)}</div>`;
+  if(tab==='add') return sellerAddForm();
+  if(tab==='orders') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Order Management</h3>${miniOrdersTable(8,'s1')}</div>`;
+  if(tab==='inventory') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Inventory Status</h3><div class="space-y-2">${state.sellerProducts.map(p=>{const s=p.stock;const pct=Math.min(100,s/5);const c=s<10?'bg-red-500':s<30?'bg-brand-500':'bg-green-500';return `<div class="flex items-center gap-4 p-3 rounded-xl border border-ink-100"><div class="w-10 h-10 rounded-lg overflow-hidden border border-ink-100">${productImg(p)}</div><div class="flex-1"><div class="text-sm font-semibold line-clamp-1">${p.name}</div><div class="text-xs text-ink-500">SKU: AB-${1000+p.id}</div></div><div class="w-32"><div class="h-2 bg-ink-100 rounded-full overflow-hidden"><div class="h-full ${c}" style="width:${pct}%"></div></div></div><div class="text-sm font-bold ${s<10?'text-red-600':'text-ink-900'} w-16 text-right">${s} pcs</div></div>`}).join('')}</div></div>`;
+  if(tab==='analytics') return `<div class="grid lg:grid-cols-2 gap-4"><div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Revenue by category</h3>${miniChart([35,48,22,60,40,75])}</div><div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Monthly sales</h3>${miniChart([20,30,45,38,52,61,48,70,65,80,72,90],true)}</div><div class="bg-white border border-ink-200 rounded-2xl p-5 lg:col-span-2"><h3 class="font-bold mb-4">Performance metrics</h3><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${[['Avg Order Value','₹1,892'],['Conversion Rate','3.4%'],['Return Rate','2.1%'],['Rating','4.7 ★']].map(([l,v])=>`<div class="p-4 rounded-xl bg-ink-50"><div class="text-xs text-ink-500">${l}</div><div class="font-extrabold text-lg mt-1">${v}</div></div>`).join('')}</div></div></div>`;
+  if(tab==='profile') return `<div class="max-w-2xl bg-white border border-ink-200 rounded-2xl p-6"><h3 class="font-bold text-lg mb-5">Seller Profile</h3><form onsubmit="event.preventDefault();toast('Profile saved')" class="space-y-4"><div class="grid sm:grid-cols-2 gap-4"><div><label class="text-xs font-semibold text-ink-600">Business Name</label><input value="TechWorld India" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div><div><label class="text-xs font-semibold text-ink-600">GSTIN</label><input value="29ABCDE1234F1Z5" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div><div><label class="text-xs font-semibold text-ink-600">Contact Person</label><input value="Ravi Kumar" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div><div><label class="text-xs font-semibold text-ink-600">Phone</label><input value="+91 98000 12345" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div><div class="sm:col-span-2"><label class="text-xs font-semibold text-ink-600">Business Address</label><textarea class="mt-1 w-full h-20 px-3.5 py-2 text-sm border border-ink-200 rounded-xl bg-ink-50">Plot 14, Electronics City, Bengaluru - 560100</textarea></div></div><div class="flex items-center gap-3 p-3 rounded-xl bg-brand-50 border border-brand-100">${icon('shield','w-5 h-5 text-brand-600')}<div class="text-sm"><div class="font-semibold">Verified Seller</div><div class="text-xs text-ink-500">Your account is verified and eligible for premium listings.</div></div></div><button class="px-6 h-11 bg-brand-600 text-white font-semibold rounded-xl">Save Profile</button></form></div>`;
+  return sellerContent('dashboard');
+}
+function miniChart(data,wide=false){
+  const max=Math.max(...data); const w=wide?480:280; const h=140;
+  const bw = w/data.length-6;
+  return `<svg viewBox="0 0 ${w} ${h}" class="w-full"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ea580c" stop-opacity="0.25"/><stop offset="1" stop-color="#ea580c" stop-opacity="0"/></linearGradient></defs>${data.map((v,i)=>{const x=i*(bw+6)+3;const bh=(v/max)*(h-20);const y=h-bh-10;return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="4" fill="#fdba74"/><rect x="${x}" y="${y}" width="${bw}" height="${bh/3}" rx="4" fill="#ea580c"/>`;}).join('')}</svg>`;
+}
+function miniOrdersTable(limit,sellerId){
+  const sample = [
+    {id:'AB10712',cust:'Priya Menon',item:prod(2),qty:1,total:1299,status:'confirmed'},
+    {id:'AB10713',cust:'Arjun Nair',item:prod(1),qty:1,total:39999,status:'packed'},
+    {id:'AB10714',cust:'Divya R.',item:prod(3),qty:1,total:29990,status:'shipped'},
+    {id:'AB10715',cust:'Karthik',item:prod(4),qty:2,total:4998,status:'delivered'},
+    {id:'AB10716',cust:'Meera S.',item:prod(2),qty:3,total:3897,status:'confirmed'},
+    {id:'AB10717',cust:'Vikram',item:prod(1),qty:1,total:39999,status:'packed'},
+    {id:'AB10718',cust:'Anita J.',item:prod(3),qty:1,total:29990,status:'shipped'},
+    {id:'AB10719',cust:'Rohan T.',item:prod(4),qty:1,total:2499,status:'delivered'}
+  ].slice(0,limit);
+  return `<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-xs text-ink-500 border-b border-ink-100"><th class="py-2 font-semibold">Order</th><th class="py-2 font-semibold">Customer</th><th class="py-2 font-semibold">Product</th><th class="py-2 font-semibold">Total</th><th class="py-2 font-semibold">Status</th><th class="py-2 font-semibold">Action</th></tr></thead><tbody>${sample.map(o=>`<tr class="border-b border-ink-50"><td class="py-3 font-semibold">${o.id}</td><td class="py-3 text-ink-600">${o.cust}</td><td class="py-3 text-ink-600 line-clamp-1 max-w-[180px]">${o.item.name}</td><td class="py-3 font-bold">${money(o.total)}</td><td class="py-3"><span class="text-[11px] font-bold uppercase px-2 py-1 rounded" style="color:${statusColors[o.status]};background:${statusColors[o.status]}15">${statusLabels[o.status]}</span></td><td class="py-3"><button onclick="toast('Order ${o.id} updated')" class="text-brand-700 font-semibold text-xs">Manage →</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function productManageTable(list){
+  return `<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-xs text-ink-500 border-b border-ink-100"><th class="py-2 font-semibold">Product</th><th class="py-2 font-semibold">Price</th><th class="py-2 font-semibold">Stock</th><th class="py-2 font-semibold">Rating</th><th class="py-2 font-semibold">Status</th><th class="py-2 font-semibold">Actions</th></tr></thead><tbody>${list.map(p=>`<tr class="border-b border-ink-50"><td class="py-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg overflow-hidden border border-ink-100">${productImg(p)}</div><div class="font-semibold line-clamp-1 max-w-[200px]">${p.name}</div></div></td><td class="py-3 font-bold">${money(p.price)}</td><td class="py-3">${p.stock}</td><td class="py-3">${ratingStars(p.rating,'w-3 h-3')} ${p.rating}</td><td class="py-3"><span class="text-[11px] font-bold px-2 py-1 rounded bg-green-100 text-green-700">Live</span></td><td class="py-3"><div class="flex gap-2"><button onclick="toast('Editing ${p.name}')" class="text-ink-600 hover:text-brand-700">${icon('edit','w-4 h-4')}</button><button onclick="if(confirm('Delete this product?')){toast('Product deleted');}" class="text-ink-600 hover:text-red-600">${icon('trash','w-4 h-4')}</button></div></td></tr>`).join('')}</tbody></table></div>`;
+}
+function sellerAddForm(){
+  return `<div class="max-w-3xl bg-white border border-ink-200 rounded-2xl p-6"><h3 class="font-bold text-lg mb-5">Add New Product</h3><form onsubmit="event.preventDefault();toast('Product added — pending approval')" class="space-y-5">
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="sm:col-span-2"><label class="text-xs font-semibold text-ink-600">Product Name</label><input required placeholder="e.g. boAt Airdopes 141" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+      <div><label class="text-xs font-semibold text-ink-600">Brand</label><input required class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+      <div><label class="text-xs font-semibold text-ink-600">Category</label><select class="mt-1 w-full h-11 px-3 text-sm border border-ink-200 rounded-xl bg-ink-50">${categories.map(c=>`<option>${c.name}</option>`).join('')}</select></div>
+      <div><label class="text-xs font-semibold text-ink-600">Selling Price (₹)</label><input type="number" required placeholder="1299" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+      <div><label class="text-xs font-semibold text-ink-600">MRP (₹)</label><input type="number" required placeholder="2990" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+      <div><label class="text-xs font-semibold text-ink-600">Stock Quantity</label><input type="number" required placeholder="100" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+      <div><label class="text-xs font-semibold text-ink-600">SKU</label><input placeholder="Auto-generated" class="mt-1 w-full h-11 px-3.5 text-sm border border-ink-200 rounded-xl bg-ink-50"></div>
+    </div>
+    <div><label class="text-xs font-semibold text-ink-600">Description</label><textarea required placeholder="Describe your product..." class="mt-1 w-full h-24 px-3.5 py-2 text-sm border border-ink-200 rounded-xl bg-ink-50"></textarea></div>
+    <div><label class="text-xs font-semibold text-ink-600">Product Images</label><div class="mt-1 grid grid-cols-4 gap-3">${[0,1,2,3].map(i=>`<label class="aspect-square rounded-xl border-2 border-dashed border-ink-300 hover:border-brand-500 hover:bg-brand-50 cursor-pointer flex flex-col items-center justify-center text-ink-400 text-center px-2"><span class="text-brand-600">${icon('upload','w-6 h-6')}</span><span class="text-[10px] mt-1 font-medium">${i===0?'Primary':'Image '+(i+1)}</span><input type="file" class="hidden" onchange="this.closest('label').style.background='#ffedd5';this.closest('label').querySelector('span:last-child').textContent='Uploaded'"></label>`).join('')}</div></div>
+    <div class="p-4 rounded-xl bg-ink-50 border border-ink-200"><div class="flex items-center gap-2 text-xs font-semibold text-ink-600 mb-2">${icon('alert','w-4 h-4')} Specifications</div><div class="grid sm:grid-cols-3 gap-2">${['Key Feature 1','Key Feature 2','Key Feature 3'].map(p=>`<input placeholder="${p}" class="h-10 px-3 text-sm border border-ink-200 rounded-lg bg-white">`).join('')}</div></div>
+    <div class="flex gap-3"><button class="px-6 h-11 bg-brand-600 text-white font-semibold rounded-xl">Submit for Approval</button><button type="button" onclick="location.hash='#/seller/products'" class="px-6 h-11 border border-ink-200 font-semibold rounded-xl">Cancel</button></div>
+  </form></div>`;
+}
+
+/* ============================================================
+   ADMIN DASHBOARD
+============================================================ */
+function adminView(tab){
+  $('#view').innerHTML = `
+    <div class="flex min-h-screen">
+      ${adminSidebar(tab)}
+      <div class="flex-1 min-w-0 bg-ink-50">
+        <header class="bg-white border-b border-ink-200 px-6 h-16 flex items-center justify-between sticky top-0 z-30"><div><h1 class="font-extrabold text-lg">${adminTabs.find(t=>t[0]===tab)?.[1]||'Dashboard'}</h1><div class="text-xs text-ink-500">ApnaBazaar · Admin Control Panel</div></div><div class="flex items-center gap-2"><button onclick="location.hash='#/'" class="text-sm text-ink-600 hover:text-ink-900 px-3 h-9 rounded-lg hover:bg-ink-100">Storefront</button><div class="w-9 h-9 rounded-full bg-ink-900 text-white font-bold flex items-center justify-center">A</div></div></header>
+        <div class="p-6 fade-in">${adminContent(tab)}</div>
+      </div>
+    </div>`;
+}
+const adminTabs=[['dashboard','Dashboard','chart'],['users','Users','users'],['sellers','Sellers','box'],['products','Products','package'],['categories','Categories','grid'],['orders','Orders','shopping'],['payments','Payments','rupee'],['reviews','Reviews','star'],['complaints','Complaints','alert'],['approvals','Approvals','shield'],['analytics','Revenue','chart']];
+function adminSidebar(tab){
+  return `<aside class="w-60 bg-ink-900 text-ink-300 min-h-screen flex flex-col shrink-0 hidden md:flex"><div class="h-16 px-5 flex items-center gap-2 border-b border-ink-800"><div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold">a</div><div class="leading-none"><div class="font-bold text-white">ApnaBazaar</div><div class="text-[10px] text-ink-400">Admin Panel</div></div></div><nav class="flex-1 p-3 space-y-1 overflow-y-auto no-scrollbar">${adminTabs.map(([id,l,i])=>`<a href="#/admin/${id}" class="flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium ${tab===id?'bg-brand-600 text-white':'hover:bg-ink-800 text-ink-300'}">${icon(i,'w-4 h-4')} ${l}${id==='approvals'?'<span class="ml-auto text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded-full">3</span>':''}</a>`).join('')}</nav><div class="p-3 border-t border-ink-800"><button onclick="location.hash='#/'" class="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium hover:bg-ink-800">${icon('logout','w-4 h-4')} Exit Admin</button></div></aside>`;
+}
+function adminContent(tab){
+  if(tab==='dashboard'){
+    const stats=[['Gross Revenue','₹84,29,400','+18.2%','rupee','text-green-700'],['Active Users','48,210','+4.3%','users','text-green-700'],['Total Orders','12,840','+11.7%','shopping','text-green-700'],['Pending Approvals','3','2 sellers, 1 product','shield','text-brand-700']];
+    return `<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">${stats.map(([l,v,d,i,c])=>`<div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between"><div class="w-10 h-10 rounded-xl bg-ink-100 flex items-center justify-center text-ink-600">${icon(i,'w-5 h-5')}</div><span class="text-xs font-bold ${c}">${d}</span></div><div class="text-xs text-ink-500 mt-3">${l}</div><div class="font-extrabold text-xl">${v}</div></div>`).join('')}</div>
+      <div class="grid lg:grid-cols-3 gap-4"><div class="lg:col-span-2 bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Platform Revenue</h3>${miniChart([45,52,48,61,58,72,68,80,75,88,82,94],true)}</div><div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Top Categories</h3><div class="space-y-3">${categories.slice(0,5).map((c,i)=>{const w=80-i*12;return `<div><div class="flex justify-between text-xs mb-1"><span class="font-medium">${c.name}</span><span class="text-ink-500">${w}%</span></div><div class="h-2 bg-ink-100 rounded-full overflow-hidden"><div class="h-full bg-brand-500" style="width:${w}%"></div></div></div>`}).join('')}</div></div></div>
+      <div class="bg-white border border-ink-200 rounded-2xl p-5 mt-4"><h3 class="font-bold mb-4">Recent Platform Activity</h3><div class="space-y-2">${[['Sangam Textiles listed 12 new products','2 hours ago'],['New seller GlowBeauty Co. awaiting approval','4 hours ago'],['Order AB10712 flagged for review','6 hours ago'],['Complaint #C-2931 resolved','1 day ago']].map(([t,d])=>`<div class="flex items-center justify-between p-3 rounded-xl bg-ink-50"><div class="text-sm font-medium">${t}</div><div class="text-xs text-ink-400">${d}</div></div>`).join('')}</div></div>`;
+  }
+  if(tab==='users') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between mb-4"><h3 class="font-bold">Registered Users</h3><input placeholder="Search users..." class="h-10 px-3 text-sm border border-ink-200 rounded-lg bg-ink-50 w-64"></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-xs text-ink-500 border-b border-ink-100"><th class="py-2 font-semibold">User</th><th class="py-2 font-semibold">Email</th><th class="py-2 font-semibold">Orders</th><th class="py-2 font-semibold">Spent</th><th class="py-2 font-semibold">Status</th><th class="py-2 font-semibold">Actions</th></tr></thead><tbody>${[['Aarav Sharma','aarav@example.com',12,'₹84,940','Active'],['Priya Menon','priya@example.com',28,'₹1,92,400','Active'],['Rahul Verma','rahul@example.com',4,'₹12,800','Blocked'],['Sneha Reddy','sneha@example.com',17,'₹52,300','Active']].map((u,i)=>`<tr class="border-b border-ink-50"><td class="py-3"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-ink-100 flex items-center justify-center font-bold text-xs">${u[0].slice(0,1)}</div><span class="font-semibold">${u[0]}</span></div></td><td class="py-3 text-ink-600">${u[1]}</td><td class="py-3">${u[2]}</td><td class="py-3 font-bold">${u[3]}</td><td class="py-3"><span class="text-[11px] font-bold px-2 py-1 rounded ${u[4]==='Active'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${u[4]}</span></td><td class="py-3"><button onclick="toast('${u[4]==='Active'?'User blocked':'User activated'}')" class="text-xs font-semibold ${u[4]==='Active'?'text-red-600':'text-green-700'}">${u[4]==='Active'?'Block':'Activate'}</button></td></tr>`).join('')}</tbody></table></div></div>`;
+  if(tab==='sellers') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between mb-4"><h3 class="font-bold">Sellers on ApnaBazaar</h3><select class="h-10 px-3 text-sm border border-ink-200 rounded-lg bg-ink-50"><option>All sellers</option><option>Verified only</option><option>Pending</option></select></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-xs text-ink-500 border-b border-ink-100"><th class="py-2 font-semibold">Seller</th><th class="py-2 font-semibold">Location</th><th class="py-2 font-semibold">Products</th><th class="py-2 font-semibold">Rating</th><th class="py-2 font-semibold">Status</th><th class="py-2 font-semibold">Actions</th></tr></thead><tbody>${sellers.map(s=>`<tr class="border-b border-ink-50"><td class="py-3"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-ink-100 flex items-center justify-center font-bold text-xs">${s.name.slice(0,1)}</div><div><div class="font-semibold">${s.name}</div>${s.verified?'<span class="text-[10px] text-brand-700 font-bold">VERIFIED</span>':''}</div></div></td><td class="py-3 text-ink-600">${s.location}</td><td class="py-3">${s.products}</td><td class="py-3">${ratingStars(s.rating,'w-3 h-3')} ${s.rating}</td><td class="py-3"><span class="text-[11px] font-bold px-2 py-1 rounded ${s.status==='approved'?'bg-green-100 text-green-700':'bg-brand-100 text-brand-700'}">${s.status==='approved'?'Approved':'Pending'}</span></td><td class="py-3"><div class="flex gap-2">${s.status==='pending'?`<button onclick="toast('${s.name} approved')" class="text-xs font-bold text-green-700">Approve</button><button onclick="toast('Rejected')" class="text-xs font-bold text-red-600">Reject</button>`:`<button onclick="toast('Viewing ${s.name}')" class="text-xs font-semibold text-brand-700">View →</button><button onclick="toast('Suspended')" class="text-xs font-semibold text-red-600">Suspend</button>`}</div></td></tr>`).join('')}</tbody></table></div></div>`;
+  if(tab==='products') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between mb-4"><h3 class="font-bold">All Products (16)</h3><input placeholder="Search products..." class="h-10 px-3 text-sm border border-ink-200 rounded-lg bg-ink-50 w-64"></div>${productManageTable(P)}</div>`;
+  if(tab==='categories') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="flex items-center justify-between mb-4"><h3 class="font-bold">Categories</h3><button onclick="toast('New category form')" class="px-4 h-10 bg-brand-600 text-white text-sm font-semibold rounded-xl flex items-center gap-2">${icon('plus','w-4 h-4')} Add Category</button></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3">${categories.map(c=>`<div class="p-4 rounded-xl border border-ink-200 flex items-center gap-3"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:${c.tint}">${icon(c.icon,'w-5 h-5 text-ink-700')}</div><div class="flex-1"><div class="font-semibold text-sm">${c.name}</div><div class="text-xs text-ink-500">${P.filter(p=>p.cat===c.id).length} products</div></div><button onclick="toast('Edit ${c.name}')" class="text-ink-400 hover:text-brand-700">${icon('edit','w-4 h-4')}</button></div>`).join('')}</div></div>`;
+  if(tab==='orders') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Platform Orders</h3>${miniOrdersTable(8,'s1')}</div>`;
+  if(tab==='payments') return `<div class="grid lg:grid-cols-3 gap-4"><div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="text-xs text-ink-500">Total Payments Processed</div><div class="font-extrabold text-2xl mt-1">₹84,29,400</div><div class="text-xs text-green-700 font-bold mt-1">+18.2% vs last month</div></div><div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="text-xs text-ink-500">Pending Settlements</div><div class="font-extrabold text-2xl mt-1">₹6,42,180</div><div class="text-xs text-brand-700 font-bold mt-1">23 sellers</div></div><div class="bg-white border border-ink-200 rounded-2xl p-5"><div class="text-xs text-ink-500">Refunds Processed</div><div class="font-extrabold text-2xl mt-1">₹38,420</div><div class="text-xs text-ink-500 mt-1">128 transactions</div></div></div><div class="bg-white border border-ink-200 rounded-2xl p-5 mt-4"><h3 class="font-bold mb-4">Recent Transactions</h3><div class="space-y-2">${[['AB10712','Priya Menon','₹1,299','UPI','Success'],['AB10713','Arjun Nair','₹39,999','Card','Success'],['AB10714','Divya R.','₹29,990','Net Banking','Success'],['AB10715','Karthik V.','₹4,998','COD','Pending']].map(t=>`<div class="flex items-center justify-between p-3 rounded-xl border border-ink-100"><div><div class="font-semibold text-sm">Order ${t[0]}</div><div class="text-xs text-ink-500">${t[1]} · ${t[3]}</div></div><div class="text-right"><div class="font-bold">${t[2]}</div><span class="text-[10px] font-bold px-2 py-0.5 rounded ${t[4]==='Success'?'bg-green-100 text-green-700':'bg-brand-100 text-brand-700'}">${t[4]}</span></div></div>`).join('')}</div></div>`;
+  if(tab==='reviews') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Customer Reviews — Moderation</h3><div class="space-y-3">${P.slice(0,5).map((p,i)=>`<div class="p-4 rounded-xl border border-ink-200"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg overflow-hidden border border-ink-100">${productImg(p)}</div><div class="text-sm font-semibold">${p.name}</div></div>${ratingStars((i%3)+3,'w-3.5 h-3.5')}</div><p class="text-sm text-ink-700">"${['Great product, fast delivery and genuine quality.','Item received damaged. Waiting for refund.','Value for money. Would recommend to others.'][i%3]}"</p><div class="flex items-center justify-between mt-3 pt-3 border-t border-ink-100"><div class="text-xs text-ink-500">By Customer #${1024+i}</div><div class="flex gap-3"><button onclick="toast('Review approved')" class="text-xs font-bold text-green-700">Approve</button><button onclick="toast('Review flagged')" class="text-xs font-bold text-ink-600">Flag</button><button onclick="toast('Review removed')" class="text-xs font-bold text-red-600">Remove</button></div></div></div>`).join('')}</div></div>`;
+  if(tab==='complaints') return `<div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Customer Complaints</h3><div class="space-y-3">${[['C-2931','Late delivery','Order AB10694','High','Resolved'],['C-2930','Wrong product','Order AB10702','Medium','Open'],['C-2929','Refund issue','Order AB10688','High','In Progress'],['C-2928','Damaged item','Order AB10679','Low','Resolved']].map(c=>`<div class="p-4 rounded-xl border border-ink-200 flex flex-wrap items-center justify-between gap-3"><div><div class="flex items-center gap-2"><span class="font-bold text-sm">#${c[0]}</span><span class="text-xs text-ink-500">${c[1]}</span></div><div class="text-xs text-ink-500 mt-1">${c[2]}</div></div><div class="flex items-center gap-2"><span class="text-[10px] font-bold px-2 py-1 rounded ${c[3]==='High'?'bg-red-100 text-red-700':c[3]==='Medium'?'bg-brand-100 text-brand-700':'bg-ink-100 text-ink-600'}">${c[3]} priority</span><span class="text-[11px] font-bold px-2 py-1 rounded ${c[4]==='Resolved'?'bg-green-100 text-green-700':c[4]==='In Progress'?'bg-brand-100 text-brand-700':'bg-ink-100 text-ink-700'}">${c[4]}</span><button onclick="toast('Opening ${c[0]}')" class="text-xs font-semibold text-brand-700">Investigate →</button></div></div>`).join('')}</div></div>`;
+  if(tab==='approvals') return `<div class="grid lg:grid-cols-2 gap-4"><div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4 flex items-center gap-2">${icon('users','w-5 h-5 text-brand-600')} Seller Approvals (2)</h3><div class="space-y-3">${sellers.filter(s=>s.status==='pending').concat(sellers.slice(0,1)).slice(0,2).map(s=>`<div class="p-4 rounded-xl border border-ink-200"><div class="flex items-center gap-3 mb-2"><div class="w-10 h-10 rounded-lg bg-ink-100 flex items-center justify-center font-bold">${s.name.slice(0,1)}</div><div><div class="font-semibold text-sm">${s.name}</div><div class="text-xs text-ink-500">${s.location} · GST: 29ABCDE${s.id}1Z5</div></div></div><div class="flex gap-2 mt-2"><button onclick="toast('${s.name} approved')" class="flex-1 h-9 bg-green-600 text-white text-xs font-bold rounded-lg">Approve</button><button onclick="toast('Rejected')" class="flex-1 h-9 border border-ink-200 text-xs font-bold rounded-lg">Reject</button><button class="h-9 px-3 border border-ink-200 text-xs font-semibold rounded-lg">Review</button></div></div>`).join('')}</div></div><div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4 flex items-center gap-2">${icon('package','w-5 h-5 text-brand-600')} Product Approvals (1)</h3><div class="space-y-3"><div class="p-4 rounded-xl border border-ink-200"><div class="flex gap-3"><div class="w-14 h-14 rounded-lg overflow-hidden border border-ink-100">${productImg(P[0])}</div><div class="flex-1"><div class="font-semibold text-sm">${P[0].name}</div><div class="text-xs text-ink-500">by TechWorld India</div><div class="text-xs text-ink-500 mt-1">Price: ${money(P[0].price)} · Cat: ${catName(P[0].cat)}</div></div></div><div class="flex gap-2 mt-3"><button onclick="toast('Product approved')" class="flex-1 h-9 bg-green-600 text-white text-xs font-bold rounded-lg">Approve</button><button onclick="toast('Product rejected')" class="flex-1 h-9 border border-ink-200 text-xs font-bold rounded-lg">Reject</button></div></div><div class="text-center text-sm text-ink-500 py-6 border-2 border-dashed border-ink-200 rounded-xl">No more products awaiting approval</div></div></div></div>`;
+  if(tab==='analytics') return `<div class="grid lg:grid-cols-2 gap-4"><div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Annual Revenue</h3>${miniChart([42,48,52,58,61,55,68,72,78,82,88,94],true)}</div><div class="bg-white border border-ink-200 rounded-2xl p-5"><h3 class="font-bold mb-4">Revenue by Category</h3><div class="space-y-3">${categories.map((c,i)=>{const w=85-i*8;return `<div><div class="flex justify-between text-xs mb-1"><span class="font-medium">${c.name}</span><span class="text-ink-500">${money(1200000-i*95000)}</span></div><div class="h-2 bg-ink-100 rounded-full overflow-hidden"><div class="h-full bg-brand-500" style="width:${w}%"></div></div></div>`}).join('')}</div></div><div class="bg-white border border-ink-200 rounded-2xl p-5 lg:col-span-2"><h3 class="font-bold mb-4">Key Metrics</h3><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${[['Gross Merchandise Value','₹84.2L'],['Platform Commission','₹4.2L'],['Avg Order Value','₹6,560'],['Repeat Customer Rate','68%'],['New Customers','4,820'],['Refund Rate','2.4%'],['Active Sellers','15,240'],['Customer Satisfaction','4.5 ★']].map(([l,v])=>`<div class="p-4 rounded-xl bg-ink-50"><div class="text-xs text-ink-500">${l}</div><div class="font-extrabold text-lg mt-1">${v}</div></div>`).join('')}</div></div></div>`;
+  return adminContent('dashboard');
+}
+
+/* ============================================================
+   NOT FOUND / SKELETON
+============================================================ */
+function notFound(){
+  $('#view').innerHTML = `<div class="max-w-md mx-auto px-4 py-24 text-center"><div class="font-extrabold text-7xl text-brand-600">404</div><h2 class="font-bold text-xl mt-4">Page not found</h2><p class="text-ink-500 mt-2">The page you're looking for doesn't exist.</p><a href="#/" class="inline-flex mt-6 px-6 h-12 bg-brand-600 text-white font-semibold rounded-xl">Back to Home</a></div>`;
+}
+function renderSkeleton(){
+  return `<div class="max-w-7xl mx-auto px-4 py-6"><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${Array(8).fill(0).map(()=>`<div class="rounded-2xl border border-ink-100 overflow-hidden"><div class="aspect-square skeleton"></div><div class="p-3 space-y-2"><div class="h-3 w-3/4 skeleton rounded"></div><div class="h-3 w-1/2 skeleton rounded"></div><div class="h-6 w-2/3 skeleton rounded"></div></div></div>`).join('')}</div></div>`;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+function renderFooter(){
+  if(location.hash.startsWith('#/seller')||location.hash.startsWith('#/admin')){$('#siteFooter').innerHTML='';return;}
+  $('#siteFooter').innerHTML = `
+    <div class="max-w-7xl mx-auto px-4 py-12">
+      <div class="grid md:grid-cols-5 gap-8">
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-2 mb-3"><div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold">a</div><div class="font-extrabold text-white text-lg">ApnaBazaar</div></div>
+          <p class="text-sm text-ink-400 max-w-xs">India's marketplace connecting millions of buyers with verified sellers across all 28 states.</p>
+          <div class="flex gap-2 mt-4">${['Twitter','Instagram','YouTube','LinkedIn'].map(s=>`<a href="#" class="w-9 h-9 rounded-lg bg-ink-800 hover:bg-ink-700 flex items-center justify-center text-xs font-bold">${s[0]}</a>`).join('')}</div>
+        </div>
+        ${[['Shop',[['All Products','#/products'],['Today\'s Deals','#/products?deals=1'],['Categories','#/products'],['New Arrivals','#/products?sort=newest']]],['Account',[['My Orders','#/orders'],['Wishlist','#/wishlist'],['Profile','#/profile'],['Cart','#/cart']]],['Sell & Help',[['Become a Seller','#/seller'],['Seller Dashboard','#/seller'],['Admin Panel','#/admin'],['Customer Support','']]]].map(([h,links])=>`<div><h4 class="font-bold text-white text-sm mb-3">${h}</h4><ul class="space-y-2 text-sm">${links.map(l=>`<li><a href="${l[1]}" onclick="if(!l[1]){toast('Support contacted');return false}" class="text-ink-400 hover:text-white transition">${l[0]}</a></li>`).join('')}</ul></div>`).join('')}
+      </div>
+      <div class="border-t border-ink-800 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-ink-500">
+        <div>© 2024 ApnaBazaar Pvt. Ltd. · Made in India 🇮🇳</div>
+        <div class="flex items-center gap-4"><a href="#" class="hover:text-white">Privacy</a><a href="#" class="hover:text-white">Terms</a><a href="#" class="hover:text-white">GST: 29ABCDE1234F1Z5</a></div>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+window.addEventListener('hashchange', router);
+window.addEventListener('DOMContentLoaded', ()=>{
+  renderFooter();
+  router();
+});
+</script>
+</body>
+</html>
